@@ -2,7 +2,7 @@
     busca.h
     Leitura dos critérios de busca informados na entrada padrão e varredura do
     arquivo de dados em busca dos registros que satisfazem todos eles.
-    Usado pelas funcionalidades de consulta e de remoção lógica.
+    Usado pelas funcionalidades de consulta, de remoção lógica e de atualização.
 */
 
 #ifndef BUSCA_H
@@ -50,11 +50,22 @@ int registroSatisfazCriterios(Registro *reg, Criterio *crit, int n);
 
 void AtualizarCampo(Registro *reg, Criterio *c);
 
-/* Varre o arquivo de dados a partir do primeiro registro e devolve um vetor
-   alocado dinamicamente com os RRNs que satisfazem todos os critérios.
-   A quantidade de RRNs encontrados é devolvida em *qtd.
-   Retorna NULL quando nenhum registro satisfaz a busca. */
+/* Posiciona o arquivo no primeiro registro, logo após o cabeçalho, para
+   iniciar uma varredura sequencial. Deve ser chamada uma vez antes da
+   primeira chamada de buscarProximo de cada busca. */
 
-int *buscarRRNs(FILE *bin, Criterio *crit, int n, int *qtd);
+void iniciarBusca(FILE *bin);
+
+/* Avança a varredura sequencial até o próximo registro que satisfaz todos os
+   n critérios e o devolve em *reg, com o seu RRN em *rrn.
+   Retorna 1 quando encontra um registro e 0 ao chegar ao fim do arquivo.
+
+   A varredura é retomada do ponto em que parou, de modo que quem chama trata
+   cada registro assim que ele é encontrado (imprimindo, removendo ou
+   atualizando). Com isso o arquivo é percorrido uma única vez por busca e
+   cada registro é lido uma única vez, sem a necessidade de guardar os RRNs
+   encontrados para relê-los depois. */
+
+int buscarProximo(FILE *bin, Criterio *crit, int n, Registro *reg, int *rrn);
 
 #endif

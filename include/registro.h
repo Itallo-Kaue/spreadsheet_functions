@@ -1,4 +1,4 @@
-/* 
+/*
     registro.h
     Definição das estruturas do registro de cabeçalho e dos registros de dados
     do arquivo CSV, além das operações de leitura/escrita campo a campo.
@@ -19,7 +19,7 @@
 #define NAO_REMOVIDO '0'
 #define REMOVIDO     '1'
 
-#define LIXO      '$' 
+#define LIXO      '$'
 #define INT_NULO  (-1)
 
 /* Registro de cabeçalho (17 bytes, nesta ordem) */
@@ -51,16 +51,15 @@ void inicializarCabecalho(Cabecalho *cab);
 
 void escreverCabecalho(FILE *bin, Cabecalho *cab);
 
-/* Lê o cabeçalho campo a campo a partir da posição 0.
-   Retorna 1 em caso de sucesso e 0 em caso de falha de leitura. */
+/* Lê o cabeçalho campo a campo a partir da posição 0. O status é o primeiro
+   campo e é conferido antes dos demais: se o arquivo estiver inconsistente,
+   o restante do cabeçalho não chega a ser lido.
+   Retorna 1 quando o cabeçalho foi lido por inteiro e o arquivo está
+   consistente, e 0 caso contrário. */
 
 int lerCabecalho(FILE *bin, Cabecalho *cab);
 
 /* --- Registros de dados --- */
-
-/* Inicializa um registro com os campos de controle padrão e os demais nulos. */
-
-void inicializarRegistro(Registro *reg);
 
 /* Escreve o registro campo a campo na posição corrente do arquivo. */
 
@@ -70,7 +69,9 @@ void escreverRegistro(FILE *bin, Registro *reg);
 
 void escreverRegistroPorRRN(FILE *bin, Registro *reg, int rrn);
 
-/* Lê um registro campo a campo na posição corrente do arquivo.
+/* Lê um registro campo a campo na posição corrente do arquivo. O campo
+   removido é lido primeiro: quando o registro está logicamente removido, o
+   seu conteúdo não é lido e os bytes restantes são apenas pulados.
    Retorna 1 em caso de sucesso e 0 quando não há mais registros. */
 
 int lerRegistro(FILE *bin, Registro *reg);
@@ -91,7 +92,8 @@ long byteOffset(int rrn);
 /* --- Abertura e fechamento do arquivo de dados --- */
 
 /* Cria o arquivo de dados, grava o cabeçalho com status '0' e devolve o FILE*.
-   Retorna NULL em caso de falha. */
+   O arquivo é aberto apenas para escrita, pois nada é lido dele durante a
+   carga. Retorna NULL em caso de falha. */
 
 FILE *criarArquivoBinario(const char *nomeArquivo, Cabecalho *cab);
 
@@ -110,4 +112,4 @@ FILE *abrirArquivoBinarioLeitura(const char *nomeArquivo, Cabecalho *cab);
 
 void fecharArquivoBinario(FILE *bin, Cabecalho *cab);
 
-#endif 
+#endif

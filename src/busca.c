@@ -14,10 +14,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define CAP_INICIAL 16
-
 /* ------------------------------------------------------------------
-    Leitura dos critérios                                              
+    Leitura dos critérios
    ------------------------------------------------------------------ */
 
 /* Lê da entrada o valor de um campo numérico. A função fornecida
@@ -64,8 +62,8 @@ Criterio *lerCriterios(int n) {
     return crit;
 }
 
-/* ------------------------------------------------------------------ 
-    Comparação de um registro com os critérios                         
+/* ------------------------------------------------------------------
+    Comparação de um registro com os critérios
    ------------------------------------------------------------------ */
 
 /* Compara um único critério com o registro. Como não existe switch sobre
@@ -113,8 +111,8 @@ int registroSatisfazCriterios(Registro *reg, Criterio *crit, int n) {
     return 1;
 }
 
-/* ------------------------------------------------------------------ 
-    Atualização de um campo                                            
+/* ------------------------------------------------------------------
+    Atualização de um campo
    ------------------------------------------------------------------ */
 
 /* Escreve o valor do critério no campo correspondente do registro. Como os
@@ -149,49 +147,38 @@ void AtualizarCampo(Registro *reg, Criterio *c) {
 }
 
 /* ------------------------------------------------------------------
-    Varredura do arquivo de dados                                     
+    Varredura do arquivo de dados
    ------------------------------------------------------------------ */
 
-/* Percorre o arquivo sequencialmente, do primeiro registro até o fim, e
-   guarda o RRN de cada registro que satisfaz a busca. O RRN é controlado por
-   um contador porque a leitura é sequencial. */
+/* Coloca o ponteiro do arquivo no byte onde começa o registro de RRN 0, ou
+   seja, logo depois dos 17 bytes do cabeçalho. */
 
-int *buscarRRNs(FILE *bin, Criterio *crit, int n, int *qtd) {
-    *qtd = 0;
-    if (bin == NULL) return NULL;
+void iniciarBusca(FILE *bin) {
+    if (bin == NULL) return;
 
-    int capacidade = CAP_INICIAL;
-    int *rrns = (int *)malloc((size_t)capacidade * sizeof(int));
-    if (rrns == NULL) return NULL;
-
-    /* Posiciona logo após o cabeçalho, no início do primeiro registro. */
     fseek(bin, (long)TAM_CABECALHO, SEEK_SET);
+}
 
-    Registro reg;
-    int rrn = 0;
+/* Continua a varredura sequencial de onde ela parou e devolve o primeiro
+   registro encontrado que satisfaz todos os critérios, junto com o seu RRN.
+   Como a busca é retomada a cada chamada, quem chama já trata o registro no
+   momento em que ele é encontrado: o arquivo é percorrido uma única vez e
+   cada registro é lido uma única vez.
+   O RRN é calculado a partir da posição corrente antes da leitura, já que os
+   registros têm tamanho fixo. */
 
-    while (lerRegistro(bin, &reg)) {
-        if (registroSatisfazCriterios(&reg, crit, n)) {
-            if (*qtd == capacidade) {
-                capacidade *= 2;
-                int *novo = (int *)realloc(rrns, (size_t)capacidade * sizeof(int));
-                if (novo == NULL) {
-                    free(rrns);
-                    *qtd = 0;
-                    return NULL;
-                }
-                rrns = novo;
-            }
-            rrns[*qtd] = rrn;
-            (*qtd)++;
+int buscarProximo(FILE *bin, Criterio *crit, int n, Registro *reg, int *rrn) {
+    if (bin == NULL) return 0;
+
+    while (1) {
+        long posicao = ftell(bin);
+        int rrnAtual = (int)((posicao - TAM_CABECALHO) / TAM_REGISTRO);
+
+        if (!lerRegistro(bin, reg)) return 0;
+
+        if (registroSatisfazCriterios(reg, crit, n)) {
+            *rrn = rrnAtual;
+            return 1;
         }
-        rrn++;
     }
-
-    if (*qtd == 0) {
-        free(rrns);
-        return NULL;
-    }
-
-    return rrns;
 }

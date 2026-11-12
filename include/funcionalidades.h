@@ -3,6 +3,11 @@
     Declaração das sete funcionalidades do programa. Cada uma corresponde a uma
     opção lida no início da entrada pelo main e é responsável por ler os
     próprios parâmetros da entrada padrão e por imprimir a sua saída.
+
+    Cada funcionalidade é implementada em um arquivo .c próprio
+    (funcionalidade1.c a funcionalidade7.c), de modo que este cabeçalho é o
+    único ponto em comum entre elas e o main. As constantes abaixo são as
+    mensagens e os limites compartilhados por todas.
 */
 
 #ifndef funcionalidades_h
@@ -10,6 +15,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+/* Tamanho máximo do nome de um arquivo lido da entrada padrão. */
+#define TAM_NOME_ARQUIVO 64
+
+/* Mensagem exibida quando o arquivo de dados não pode ser processado. */
+#define MSG_FALHA "Falha no processamento do arquivo.\n"
+
+/* Mensagem exibida quando uma consulta não devolve nenhum registro. */
+#define MSG_INEXISTENTE "Registro inexistente.\n"
 
 /* 1º Cria o arquivo de dados a partir do CSV de entrada.
    Entrada: nome do arquivo CSV e nome do arquivo binário a ser gerado. */
@@ -48,7 +62,7 @@ void Funcionalidade_6();
 /* 7º Atualiza os registros que satisfazem os critérios de busca.
    Entrada: nome do arquivo, quantidade n de atualizações e, para cada uma,
    uma linha com os campos de busca e outra com os campos a alterar. */
-   
+
 void Funcionalidade_7();
 
 #endif

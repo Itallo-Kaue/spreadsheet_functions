@@ -1,4 +1,4 @@
-/* 
+/*
     registro.c
     Implementação da manipulação do registro de cabeçalho e dos registros de
     dados. Toda a entrada/saída é feita campo a campo.
@@ -9,8 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* ------------------------------------------------------------------ 
-    Cabeçalho                                                         
+/* ------------------------------------------------------------------
+    Cabeçalho
    ------------------------------------------------------------------ */
 
 /* Valores iniciais de um arquivo de dados recém-criado: arquivo ainda aberto
@@ -36,13 +36,19 @@ void escreverCabecalho(FILE *bin, Cabecalho *cab) {
     fwrite(&cab->nroPares, sizeof(int), 1, bin);
 }
 
-/* Lê os 17 bytes do cabeçalho, campo a campo, a partir do byte 0.
-   Retorna 1 se todos os campos foram lidos e 0 caso contrário. */
+/* Lê os 17 bytes do cabeçalho, campo a campo, a partir do byte 0. O status
+   ocupa o primeiro byte e indica se o arquivo está consistente; por isso ele
+   é lido e conferido antes dos demais campos, evitando ler por inteiro o
+   cabeçalho de um arquivo que não pode ser usado.
+   Retorna 1 quando o cabeçalho foi lido por completo e o arquivo está
+   consistente, e 0 caso contrário. */
 
 int lerCabecalho(FILE *bin, Cabecalho *cab) {
     fseek(bin, 0, SEEK_SET);
 
     if (fread(&cab->status, sizeof(char), 1, bin) != 1) return 0;
+    if (cab->status != STATUS_CONSISTENTE) return 0;
+
     if (fread(&cab->topoPilha, sizeof(int), 1, bin) != 1) return 0;
     if (fread(&cab->proxRRN, sizeof(int), 1, bin) != 1) return 0;
     if (fread(&cab->nroRegRem, sizeof(int), 1, bin) != 1) return 0;
@@ -51,8 +57,8 @@ int lerCabecalho(FILE *bin, Cabecalho *cab) {
     return 1;
 }
 
-/* ------------------------------------------------------------------ 
-    Registros de dados                                                
+/* ------------------------------------------------------------------
+    Registros de dados
    ------------------------------------------------------------------ */
 
 /* Byte offset do registro de RRN informado: o cabeçalho ocupa os primeiros
@@ -60,18 +66,6 @@ int lerCabecalho(FILE *bin, Cabecalho *cab) {
 
 long byteOffset(int rrn) {
     return (long)TAM_CABECALHO + (long)rrn * TAM_REGISTRO;
-}
-
-/* Registro em branco: não removido, fora da pilha e com os campos de dados
-   nulos, ou seja, -1 para os inteiros e '$' para a string. */
-
-void inicializarRegistro(Registro *reg) {
-    reg->removido = NAO_REMOVIDO;
-    reg->encadeamentoPilha = -1;
-    reg->idPoPs = INT_NULO;
-    reg->idPoPsConectado = INT_NULO;
-    reg->velocidade = INT_NULO;
-    reg->unidadeMedida = LIXO;
 }
 
 /* Grava os 18 bytes do registro, campo a campo, na posição corrente.
@@ -95,10 +89,20 @@ void escreverRegistroPorRRN(FILE *bin, Registro *reg, int rrn) {
 }
 
 /* Lê os 18 bytes do registro, campo a campo, na posição corrente.
+   O campo removido é o primeiro do registro: quando ele indica que o registro
+   está logicamente removido, o conteúdo dos campos seguintes é lixo e não
+   precisa ser lido, então os bytes restantes são apenas pulados com fseek e o
+   ponteiro já fica no início do próximo registro.
    Retorna 0 quando o arquivo acabou. */
 
 int lerRegistro(FILE *bin, Registro *reg) {
     if (fread(&reg->removido, sizeof(char), 1, bin) != 1) return 0;
+
+    if (reg->removido == REMOVIDO) {
+        if (fseek(bin, (long)(TAM_REGISTRO - 1), SEEK_CUR) != 0) return 0;
+        return 1;
+    }
+
     if (fread(&reg->encadeamentoPilha, sizeof(int), 1, bin) != 1) return 0;
     if (fread(&reg->idPoPs, sizeof(int), 1, bin) != 1) return 0;
     if (fread(&reg->idPoPsConectado, sizeof(int), 1, bin) != 1) return 0;
@@ -119,7 +123,7 @@ int lerRegistroPorRRN(FILE *bin, Registro *reg, int rrn) {
 }
 
 /* Preenche com lixo '$' todos os bytes dos campos de dados, preservando os
-   campos de controle (removido e encadeamentoPilha). Como os inteiros são 
+   campos de controle (removido e encadeamentoPilha). Como os inteiros são
    de 4 bytes, o preenchimento é feito byte a byte sobre a representação do inteiro. */
 
 void preencherComLixo(Registro *reg) {
@@ -138,15 +142,16 @@ void preencherComLixo(Registro *reg) {
     reg->unidadeMedida = LIXO;
 }
 
-/* ------------------------------------------------------------------ 
-    Abertura e fechamento do arquivo de dados                         
+/* ------------------------------------------------------------------
+    Abertura e fechamento do arquivo de dados
    ------------------------------------------------------------------ */
 
 /* Cria o arquivo de dados e já grava o cabeçalho inicial com status '0',
-   indicando que o arquivo está aberto. */
+   indicando que o arquivo está aberto. O modo "wb" basta: na criação da
+   tabela o arquivo é apenas escrito, nada é lido de volta. */
 
 FILE *criarArquivoBinario(const char *nomeArquivo, Cabecalho *cab) {
-    FILE *bin = fopen(nomeArquivo, "wb+");
+    FILE *bin = fopen(nomeArquivo, "wb");
     if (bin == NULL) return NULL;
 
     inicializarCabecalho(cab);
@@ -155,15 +160,17 @@ FILE *criarArquivoBinario(const char *nomeArquivo, Cabecalho *cab) {
     return bin;
 }
 
-/* Abre um arquivo já existente para leitura e escrita. O cabeçalho é lido e,
-   em seguida, o status é regravado como '0' enquanto o arquivo estiver em uso.
+/* Abre um arquivo já existente para leitura e escrita, com o modo "rb+", pois
+   as funcionalidades de remoção, inserção e atualização precisam ler o
+   registro e regravá-lo no mesmo lugar. O cabeçalho é lido e, em seguida, o
+   status é regravado como '0' enquanto o arquivo estiver em uso.
    Retorna NULL se o arquivo não existir ou estiver inconsistente. */
 
 FILE *abrirArquivoBinario(const char *nomeArquivo, Cabecalho *cab) {
     FILE *bin = fopen(nomeArquivo, "rb+");
     if (bin == NULL) return NULL;
 
-    if (!lerCabecalho(bin, cab) || cab->status != STATUS_CONSISTENTE) {
+    if (!lerCabecalho(bin, cab)) {
         fclose(bin);
         return NULL;
     }
@@ -174,14 +181,15 @@ FILE *abrirArquivoBinario(const char *nomeArquivo, Cabecalho *cab) {
     return bin;
 }
 
-/* Abre um arquivo já existente apenas para leitura, que não alteram o arquivo 
-   e, portanto, não mexem no status. */
+/* Abre um arquivo já existente apenas para leitura, com o modo "rb". As
+   funcionalidades de consulta não alteram o arquivo e, portanto, não mexem no
+   status nem precisam de permissão de escrita. */
 
 FILE *abrirArquivoBinarioLeitura(const char *nomeArquivo, Cabecalho *cab) {
     FILE *bin = fopen(nomeArquivo, "rb");
     if (bin == NULL) return NULL;
 
-    if (!lerCabecalho(bin, cab) || cab->status != STATUS_CONSISTENTE) {
+    if (!lerCabecalho(bin, cab)) {
         fclose(bin);
         return NULL;
     }

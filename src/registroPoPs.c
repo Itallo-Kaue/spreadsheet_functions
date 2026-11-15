@@ -56,9 +56,9 @@ CabecalhoPoPs lerCabecalhoPoPs(FILE *f) {
 int tamanhoDoRegistroPoPs(RegistroPoPs *r) {
     int size = 19;
     if (r->nomePoPs) size += strlen(r->nomePoPs);
-    size += 1; /* Delimitador '|'. */
+    size += 1; 
     if (r->nomePais) size += strlen(r->nomePais);
-    size += 1; /* Delimitador '|'. */
+    size += 1; 
     return size;
 }
 
@@ -74,7 +74,6 @@ RegistroPoPs lerRegistroPoPs(FILE *f) {
     if (fread(&r.removido, 1, 1, f) != 1) { r.removido = '2'; return r; }
     if (fread(&r.tamanhoRegistro, 4, 1, f) != 1) { r.removido = '2'; return r; }
     
-    /* Removido: pula o resto. */
     if(r.removido == REMOVIDO) {
         fread(&r.encadeamentoLista, 8, 1, f);
         fread(&r.idPoPs, 4, 1, f);

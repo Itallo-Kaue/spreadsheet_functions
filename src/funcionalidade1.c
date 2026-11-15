@@ -9,7 +9,6 @@
 #include "csv.h"
 #include "fornecidas.h"
 
-/* Entrada: csv e binário. */
 
 void Funcionalidade_1() {
     char nomeCSV[TAM_NOME_ARQUIVO];

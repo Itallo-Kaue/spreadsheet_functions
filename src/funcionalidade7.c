@@ -11,7 +11,6 @@
 #include "fornecidas.h"
 #include "registro.h"
 
-/* Entrada: arquivo e n atualizações (linha de busca + linha com os novos valores). */
 
 void Funcionalidade_7() {
     char nomeArquivo[TAM_NOME_ARQUIVO];
@@ -43,7 +42,6 @@ void Funcionalidade_7() {
             for (int k = 0; k < p; k++) AtualizarCampo(&reg, &novos[k]);
             escreverRegistroPorRRN(bin, &reg, rrn);
 
-            /* Volta pro próximo registro. */
 
             fseek(bin, byteOffset(rrn + 1), SEEK_SET);
         }

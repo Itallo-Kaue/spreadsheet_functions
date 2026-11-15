@@ -12,8 +12,6 @@
 #include "registro.h"
 #include "util.h"
 
-/* Entrada: arquivo e n buscas (m pares nomeCampo valor em cada). */
-
 void Funcionalidade_3() {
     char nomeArquivo[TAM_NOME_ARQUIVO];
     int n;

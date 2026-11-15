@@ -25,7 +25,6 @@ int main() {
         case 5: Funcionalidade_5(); break;
         case 6: Funcionalidade_6(); break;
         case 7: Funcionalidade_7(); break;
-        /* Trabalho 2. */
         case 8: funcionalidade8(); break;
         case 9: funcionalidade9(); break;
         case 10: funcionalidade10(); break;

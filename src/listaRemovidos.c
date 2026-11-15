@@ -23,7 +23,6 @@ void inserirNaLista(FILE *f, CabecalhoPoPs *c, RegistroPoPs *r, int64_t offset) 
         prevOff = currOff;
         currOff = temp.encadeamentoLista;
     }
-    /* O prevOff fica antes de r e currOff depois (prevOff -1 = r vira o topo). */
     r->encadeamentoLista = currOff;
     escreverRegistroPorOffset(f, r, offset);
     if(prevOff == -1) c->topoLista = offset;

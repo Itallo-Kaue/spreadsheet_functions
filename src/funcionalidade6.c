@@ -13,7 +13,6 @@
 #include "pilha.h"
 #include "registro.h"
 
-/* Entrada: arquivo e n inserções (idPoPs idPoPsConectado velocidade unidadeMedida). */
 
 void Funcionalidade_6() {
     char nomeArquivo[TAM_NOME_ARQUIVO];
@@ -38,8 +37,6 @@ void Funcionalidade_6() {
         LerValorNumerico(valor); reg.idPoPsConectado = atoi(valor);
         LerValorNumerico(valor); reg.velocidade = (valor[0] != '\0') ? atoi(valor) : INT_NULO;
         ScanQuoteString(valor);  reg.unidadeMedida = (valor[0] != '\0') ? valor[0] : LIXO;
-
-        /* Reusa o topo da pilha, se tiver. */
 
         int rrn = Desempilhar(bin, &cab);
         if (rrn == -1) {

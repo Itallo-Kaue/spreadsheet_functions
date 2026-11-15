@@ -9,7 +9,6 @@
 #include "registroPoPs.h"
 #include "utilPoPs.h"
 
-/* Entrada: arquivo de dados. */
 
 void funcionalidade10() {
     char arqBin[TAM_NOME_ARQUIVO];
@@ -19,7 +18,6 @@ void funcionalidade10() {
     CabecalhoPoPs c = lerCabecalhoPoPs(f);
     if(c.status == '0') { printf(MSG_FALHA); fclose(f); return; }
     
-    /* Removido == '2' -> acabou o arquivo. */
     fseek(f, 25, SEEK_SET);
     int found = 0;
     while(ftell(f) < c.proxByteOffset) {

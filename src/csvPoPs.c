@@ -22,7 +22,6 @@ int criarTabelaPoPs(const char *nomeCSV, const char *nomeBin) {
     CabecalhoPoPs c = {'0', -1, 25, 0, 0};
     escreverCabecalhoPoPs(fOut, &c);
     
-    /* Pula a linha de títulos do CSV. */
     char linha[1024];
     if (!fgets(linha, sizeof(linha), fIn)) {
         fclose(fIn);
@@ -31,7 +30,6 @@ int criarTabelaPoPs(const char *nomeCSV, const char *nomeBin) {
     }
     
     while (fgets(linha, sizeof(linha), fIn)) {
-        /* Tira o \n ou \r\n. */
         linha[strcspn(linha, "\n")] = 0;
         if(linha[strcspn(linha, "\r")] == '\r') linha[strcspn(linha, "\r")] = 0;
         
@@ -57,7 +55,6 @@ int criarTabelaPoPs(const char *nomeCSV, const char *nomeBin) {
             r.siglaPais[1] = LIXO;
         }
         
-        /* Sem lixo na carga inicial. */
         r.tamanhoRegistro = tamanhoDoRegistroPoPs(&r);
         escreverRegistroPoPs(fOut, &r);
         
@@ -66,7 +63,6 @@ int criarTabelaPoPs(const char *nomeCSV, const char *nomeBin) {
         liberarRegistroPoPs(&r);
     }
     
-    /* Atualiza o cabeçalho, status '1' e fecha. */
     c.status = '1';
     escreverCabecalhoPoPs(fOut, &c);
     fclose(fIn);

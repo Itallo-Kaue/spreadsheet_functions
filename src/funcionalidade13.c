@@ -15,7 +15,6 @@
 #include "fornecidas.h"
 #include "registroPoPs.h"
 
-/* Entrada: dados, índice e n inserções (idPoPs nomePoPs nomePais siglaPais). */
 
 void funcionalidade13() {
     char arqBin[TAM_NOME_ARQUIVO], arqIdx[TAM_NOME_ARQUIVO];
@@ -41,7 +40,6 @@ void funcionalidade13() {
         liberarIndice(idx);
         return; 
     }
-    /* Status '0' enquanto o arquivo está aberto. */
     cab.status = '0'; 
     escreverCabecalhoPoPs(f, &cab);
     

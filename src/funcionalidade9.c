@@ -10,7 +10,6 @@
 #include "indicePrimario.h"
 #include "fornecidas.h"
 
-/* Entrada: arquivo de dados e arquivo de índice. */
 
 void funcionalidade9() {
     char arqBin[TAM_NOME_ARQUIVO], arqIdx[TAM_NOME_ARQUIVO];

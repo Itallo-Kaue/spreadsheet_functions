@@ -87,7 +87,6 @@ void AtualizarCampoPoPs(RegistroPoPs *reg, CriterioPoPs *c) {
     }
 }
 
-/* Pula o cabeçalho (25 bytes). */
 
 void iniciarBuscaPoPs(FILE *bin) {
     if (bin) fseek(bin, 25, SEEK_SET);

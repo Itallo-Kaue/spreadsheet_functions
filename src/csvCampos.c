@@ -9,7 +9,6 @@
 #include <ctype.h>
 #include <string.h>
 
-/* Tira \n e \r do fim. */
 
 char *removerQuebraDeLinha(char *campo) {
     size_t fim = strlen(campo);

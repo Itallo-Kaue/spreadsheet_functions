@@ -8,14 +8,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include "funcionalidades.h"
 #include "buscaPoPs.h"
 #include "indicePrimario.h"
 #include "listaRemovidos.h"
 #include "fornecidas.h"
-
-/* Entrada: dados, índice e n remoções (m pares nomeCampo valor em cada). */
 
 void funcionalidade12() {
     char arqBin[TAM_NOME_ARQUIVO], arqIdx[TAM_NOME_ARQUIVO];
@@ -53,13 +50,11 @@ void funcionalidade12() {
         RegistroPoPs reg; int64_t offset_atual;
         iniciarBuscaPoPs(f);
         while (buscarProximoPoPs(f, crit, m, &reg, &offset_atual, cab.proxByteOffset)) {
-            /* Remove: sai do índice, enche de lixo e vai pra lista. */
             reg.removido = REMOVIDO;
             removerDoIndice(idx, reg.idPoPs);
             preencherComLixoRegistroPoPs(&reg);
             inserirNaLista(f, &cab, &reg, offset_atual);
             cab.nroPoPs--;
-            /* As escritas mexeram no ponteiro, volta pro próximo registro. */
             fseek(f, offset_atual + reg.tamanhoRegistro, SEEK_SET);
             liberarRegistroPoPs(&reg);
         }

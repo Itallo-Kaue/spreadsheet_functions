@@ -9,7 +9,6 @@
 #include "registro.h"
 #include "util.h"
 
-/* Entrada: arquivo de dados. */
 
 void Funcionalidade_2() {
     char nomeArquivo[TAM_NOME_ARQUIVO];
@@ -21,7 +20,7 @@ void Funcionalidade_2() {
         return;
     }
 
-    /* O ponteiro já está no byte 17. */
+
 
     Registro reg;
     int impressos = 0;

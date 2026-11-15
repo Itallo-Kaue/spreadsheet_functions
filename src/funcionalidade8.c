@@ -9,8 +9,6 @@
 #include "csvPoPs.h"
 #include "fornecidas.h"
 
-/* Entrada: csv e binário. */
-
 void funcionalidade8() {
     char arqIn[TAM_NOME_ARQUIVO], arqOut[TAM_NOME_ARQUIVO];
     if (scanf("%63s %63s", arqIn, arqOut) != 2) return;

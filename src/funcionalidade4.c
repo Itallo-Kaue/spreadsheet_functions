@@ -9,7 +9,6 @@
 #include "registro.h"
 #include "util.h"
 
-/* Entrada: arquivo e RRN. */
 
 void Funcionalidade_4() {
     char nomeArquivo[TAM_NOME_ARQUIVO];
@@ -22,8 +21,7 @@ void Funcionalidade_4() {
         return;
     }
     Registro reg;
-
-    /* O RRN precisa estar dentro da faixa já usada do arquivo. */
+    
     if (rrn < 0 || rrn >= cab.proxRRN || !lerRegistroPorRRN(bin, &reg, rrn)) {
         printf(MSG_INEXISTENTE);
     } else if (!ImprimirRegistros(&reg)) {

@@ -16,7 +16,6 @@
 #include "fornecidas.h"
 #include "registroPoPs.h"
 
-/* Cópia com as strings duplicadas. */
 
 static RegistroPoPs clonarRegistroPoPs(RegistroPoPs *r) {
     RegistroPoPs copia = *r;
@@ -35,8 +34,6 @@ static void processarAtualizacaoRegistro(FILE *f, CabecalhoPoPs *cab, IndiceArra
     for(int k=0; k<p; k++) {
         AtualizarCampoPoPs(reg, &novos[k]);
     }
-    
-    /* Não deixa repetir idPoPs. */
     if (reg->idPoPs != oldId) {
         int64_t dummy;
         if (buscarNoIndice(idx, reg->idPoPs, &dummy)) {
@@ -46,7 +43,6 @@ static void processarAtualizacaoRegistro(FILE *f, CabecalhoPoPs *cab, IndiceArra
     
     int novoTamNecessario = tamanhoDoRegistroPoPs(reg);
     
-    /* Cabe no mesmo lugar. */
     if(novoTamNecessario <= oldTam) {
         reg->tamanhoRegistro = oldTam;
         escreverRegistroPorOffset(f, reg, offset_atual);
@@ -55,7 +51,6 @@ static void processarAtualizacaoRegistro(FILE *f, CabecalhoPoPs *cab, IndiceArra
             inserirNoIndice(idx, reg->idPoPs, offset_atual);
         }
     } else {
-        /* Não cabe: remove o antigo e insere a cópia como registro novo. */
         RegistroPoPs backup = clonarRegistroPoPs(reg);
         
         reg->idPoPs = oldId; 
@@ -82,7 +77,6 @@ static void processarAtualizacaoRegistro(FILE *f, CabecalhoPoPs *cab, IndiceArra
     }
 }
 
-/* Entrada: dados, índice e n atualizações (busca / campos novos). */
 
 void funcionalidade14() {
     char arqBin[TAM_NOME_ARQUIVO], arqIdx[TAM_NOME_ARQUIVO];
@@ -119,7 +113,6 @@ void funcionalidade14() {
         CriterioPoPs *novos = lerCriteriosPoPs(p);
         if(!busca || !novos) { if(busca) free(busca); if(novos) free(novos); continue; }
         
-        /* Se tiver idPoPs na busca dá pra usar o índice. */
         int temIdPoPs = 0, idBuscado = -1;
         for(int j=0; j<m; j++) {
             if(strcmp(busca[j].nomeCampo, "idPoPs") == 0 && busca[j].valor[0] != '\0') {

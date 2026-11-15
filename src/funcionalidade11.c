@@ -14,7 +14,6 @@
 #include "indicePrimario.h"
 #include "utilPoPs.h"
 
-/* Entrada: dados, índice e n buscas (m pares nomeCampo valor em cada). */
 
 void funcionalidade11() {
     char arqBin[TAM_NOME_ARQUIVO], arqIdx[TAM_NOME_ARQUIVO];

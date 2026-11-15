@@ -13,7 +13,7 @@
 #include "pilha.h"
 #include "registro.h"
 
-/* Entrada: arquivo e n remoções (m pares nomeCampo valor em cada). */
+
 
 void Funcionalidade_5() {
     char nomeArquivo[TAM_NOME_ARQUIVO];
@@ -34,12 +34,10 @@ void Funcionalidade_5() {
         int rrn;
         iniciarBusca(bin);
         while (buscarProximo(bin, crit, m, &reg, &rrn)) {
-            /* Enche de lixo e empilha. */
             preencherComLixo(&reg);
             escreverRegistroPorRRN(bin, &reg, rrn);
             Empilhar(bin, &cab, rrn);
 
-            /* Volta pro próximo registro. */
 
             fseek(bin, byteOffset(rrn + 1), SEEK_SET);
         }

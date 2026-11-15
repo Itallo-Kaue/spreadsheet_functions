@@ -7,7 +7,6 @@
 #include "registro.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 
 /* ------------------------------------------------------------------
     Cabeçalho

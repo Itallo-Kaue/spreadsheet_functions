@@ -10,7 +10,6 @@
 #include "indicePrimario.h"
 #include "registroPoPs.h"
 
-/* Compara por idPoPs, pro qsort. */
 
 static int compararIndice(const void *a, const void *b) {
     int idA = ((IndiceEntry*)a)->idPoPs;

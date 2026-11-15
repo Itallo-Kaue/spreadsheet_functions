@@ -1,32 +1,56 @@
-# Trabalho Introdutório — Estrutura de Dados III
+# Trabalhos Práticos — Estrutura de Dados III (SCC0607)
 
-Manipulação de um arquivo de dados de registros de tamanho fixo, com acesso
-sequencial e direto por RRN, remoção lógica encadeada em pilha e
-reaproveitamento de espaço nas inserções.
+Manipulação de arquivos binários de dados sobre a topologia de rede da
+Internet, com base no projeto Internet Topology Zoo. O projeto reúne os dois
+trabalhos práticos da disciplina:
+
+- **Trabalho 1** (funcionalidades 1 a 7): arquivo `conectaPoPs`, com registros
+  de tamanho fixo, acesso direto por RRN e reaproveitamento de espaço por uma
+  pilha de registros removidos.
+- **Trabalho 2** (funcionalidades 8 a 14): arquivo `PoPs`, com registros de
+  tamanho variável, endereçamento por byte offset, reaproveitamento de espaço
+  pela estratégia *worst fit* e um índice primário sobre o campo `idPoPs`.
 
 ## Autores
 
 | Nome                       | NUSP     |
 | -------------------------- | -------- |
 | Ítallo Kauê Barbosa Santos | 16839029 |
-| Natália Yumi Wanabi        | 13725566 |
+| Natália Yumi Watanabi      | 13725566 |
 
 ## Compilação e execução
 
 ```
-make          # gera o executável programaTrabalho
-make run      # compila e executa
-make clean    # remove os .o e o executável
+make            # compila src/*.c e gera o executável programaTrab
+make run        # executa o programa
+make valgrind   # executa o programa sob o valgrind
+make clean      # remove o executável
 ```
 
-A entrada é lida da entrada padrão e começa sempre pelo número da
-funcionalidade.
+O programa lê tudo da entrada padrão. O primeiro valor é sempre o número da
+funcionalidade, seguido dos parâmetros dela.
 
-## Organização do arquivo de dados
+## Organização do código
 
-O arquivo binário é formado por um registro de cabeçalho seguido dos registros
-de dados, todos de tamanho fixo. Toda a leitura e escrita é feita **campo a
-campo**, nunca gravando a struct inteira de uma vez.
+```
+include/   cabeçalhos (.h)
+src/       implementação (.c)
+```
+
+| Módulo                                   | Responsabilidade                                                |
+| ---------------------------------------- | --------------------------------------------------------------- |
+| `main.c`                                 | lê o número da funcionalidade e chama a função correspondente   |
+| `funcionalidade1.c` … `funcionalidade14.c` | uma funcionalidade por arquivo                                |
+| `registro`, `pilha`, `busca`, `util`     | arquivo `conectaPoPs` (Trabalho 1)                              |
+| `registroPoPs`, `listaRemovidos`, `buscaPoPs`, `utilPoPs` | arquivo `PoPs` (Trabalho 2)                    |
+| `indicePrimario`                         | índice primário `indexaPoPs`                                    |
+| `csvCampos`, `csv`, `csvPoPs`            | leitura dos arquivos CSV de entrada                             |
+| `fornecidas`                             | funções disponibilizadas na disciplina (`binarioNaTela`, `scan_quote_string`) |
+
+Toda a leitura e escrita dos arquivos binários é feita **campo a campo**, nunca
+gravando a struct inteira de uma vez.
+
+## Trabalho 1 — arquivo `conectaPoPs`
 
 **Cabeçalho — 17 bytes**
 
@@ -50,55 +74,110 @@ campo**, nunca gravando a struct inteira de uma vez.
 | `unidadeMedida`     | char | 1     | `'$'` quando nulo                |
 
 O byte offset de um registro é `17 + RRN * 18`, o que permite o acesso direto
-usado na funcionalidade [4].
+da funcionalidade 4. A pilha de removidos fica dentro do próprio arquivo: o topo
+é o campo `topoPilha` do cabeçalho e o encadeamento é o campo
+`encadeamentoPilha` de cada registro removido.
 
-A pilha de removidos não existe em memória: o topo é o campo `topoPilha` do
-cabeçalho e o encadeamento é o campo `encadeamentoPilha` de cada registro
-removido — uma lista encadeada gravada dentro do próprio arquivo.
+## Trabalho 2 — arquivo `PoPs`
+
+**Cabeçalho — 25 bytes**
+
+| campo            | tipo    | bytes | descrição                                          |
+| ---------------- | ------- | ----- | -------------------------------------------------- |
+| `status`         | char    | 1     | `'0'` inconsistente, `'1'` consistente             |
+| `topoLista`      | int64_t | 8     | byte offset do maior espaço removido, ou `-1`      |
+| `proxByteOffset` | int64_t | 8     | próximo byte livre no fim do arquivo (começa em 25) |
+| `nroRegRem`      | int     | 4     | quantidade de registros removidos                  |
+| `nroPoPs`        | int     | 4     | quantidade de PoPs armazenados                     |
+
+**Registro de dados — 19 bytes fixos + parte variável**
+
+| campo               | tipo    | bytes    | descrição                                   |
+| ------------------- | ------- | -------- | ------------------------------------------- |
+| `removido`          | char    | 1        | `'0'` ou `'1'`                              |
+| `tamanhoRegistro`   | int     | 4        | tamanho total do registro, em bytes         |
+| `encadeamentoLista` | int64_t | 8        | byte offset do próximo removido, ou `-1`    |
+| `idPoPs`            | int     | 4        | chave primária, não pode ser nulo           |
+| `siglaPais`         | char[2] | 2        | `'$$'` quando nulo                          |
+| `nomePoPs`          | string  | variável | terminada por `\|`; só o `\|` quando nula   |
+| `nomePais`          | string  | variável | terminada por `\|`; só o `\|` quando nula   |
+
+Os campos de 8 bytes usam `int64_t`, porque o tamanho de `long` varia entre
+plataformas.
+
+**Remoção e reaproveitamento (*worst fit*).** Um registro removido tem todos os
+bytes depois dos campos de controle (`removido`, `tamanhoRegistro` e
+`encadeamentoLista`) preenchidos com `'$'`. Os removidos formam uma lista
+encadeada dentro do próprio arquivo, em ordem decrescente de tamanho: o topo é
+sempre o maior espaço livre. Numa inserção, basta olhar o topo: se o novo
+registro couber nele, o espaço é reaproveitado, o registro mantém o
+`tamanhoRegistro` original e a sobra é preenchida com `'$'`; caso contrário, o
+registro vai para o fim do arquivo.
+
+**Atualização.** Se o registro atualizado couber no espaço que ocupava, ele é
+regravado no mesmo lugar, com o lixo no fim. Se não couber, o antigo é removido
+logicamente e o atualizado é inserido como um registro novo.
+
+### Índice primário `indexaPoPs`
+
+| parte      | conteúdo                                                   |
+| ---------- | ---------------------------------------------------------- |
+| cabeçalho  | `status` (1 byte)                                          |
+| registros  | `idPoPs` (4 bytes) + `byteoffset` (8 bytes), 12 bytes cada |
+
+As entradas ficam ordenadas por `idPoPs` em ordem crescente. Durante as
+funcionalidades, o índice é carregado inteiro para a memória, consultado por
+busca binária e gravado de volta no fim. As funcionalidades 11 a 14 recusam um
+índice inexistente ou inconsistente antes de abrir o arquivo de dados.
 
 ## Funcionalidades
 
-| #   | operação                                 | entrada                                                       |
-| --- | ---------------------------------------- | ------------------------------------------------------------- |
-| 1   | carrega o CSV em um arquivo binário novo | `1 arquivo.csv arquivo.bin`                                   |
-| 2   | lista todos os registros não removidos   | `2 arquivo.bin`                                               |
-| 3   | busca por critérios                      | `3 arquivo.bin n` + n linhas `m campo valor ...`              |
-| 4   | busca por RRN                            | `4 arquivo.bin rrn`                                           |
-| 5   | remoção lógica                           | `5 arquivo.bin n` + n linhas `m campo valor ...`              |
-| 6   | inserção com reaproveitamento de espaço  | `6 arquivo.bin n` + n linhas com os 4 campos                  |
-| 7   | atualização de registros                 | `7 arquivo.bin n` + n pares de linhas (busca / novos valores) |
+| #  | operação                                    | entrada                                                                   |
+| -- | ------------------------------------------- | ------------------------------------------------------------------------- |
+| 1  | carrega o CSV no arquivo `conectaPoPs`      | `1 arquivo.csv arquivo.bin`                                               |
+| 2  | lista os registros não removidos            | `2 arquivo.bin`                                                           |
+| 3  | busca por critérios                         | `3 arquivo.bin n` + n linhas `m campo valor ...`                          |
+| 4  | busca por RRN                               | `4 arquivo.bin rrn`                                                       |
+| 5  | remoção lógica                              | `5 arquivo.bin n` + n linhas `m campo valor ...`                          |
+| 6  | inserção com reaproveitamento de espaço     | `6 arquivo.bin n` + n linhas com os 4 campos                              |
+| 7  | atualização                                 | `7 arquivo.bin n` + n pares de linhas (busca / novos valores)             |
+| 8  | carrega o CSV no arquivo `PoPs`             | `8 arquivo.csv arquivo.bin`                                               |
+| 9  | cria o índice primário                      | `9 arquivo.bin indice.bin`                                                |
+| 10 | lista os registros não removidos            | `10 arquivo.bin`                                                          |
+| 11 | busca por critérios                         | `11 arquivo.bin indice.bin n` + n linhas `m campo valor ...`              |
+| 12 | remoção lógica                              | `12 arquivo.bin indice.bin n` + n linhas `m campo valor ...`              |
+| 13 | inserção com reaproveitamento de espaço     | `13 arquivo.bin indice.bin n` + n linhas `idPoPs nomePoPs nomePais siglaPais` |
+| 14 | atualização                                 | `14 arquivo.bin indice.bin n` + n pares de linhas (busca / novos valores) |
 
-Os campos de busca aceitos são `idPoPs`, `idPoPsConectado`, `velocidade` e
-`unidadeMedida`. A unidade de medida é escrita entre aspas na entrada e na
-saída; um campo ausente é informado como `NULO`.
+- Campos de busca do Trabalho 1: `idPoPs`, `idPoPsConectado`, `velocidade` e
+  `unidadeMedida`.
+- Campos de busca do Trabalho 2: `idPoPs`, `nomePoPs`, `nomePais` e
+  `siglaPais`. Quando o `idPoPs` está entre os critérios, a funcionalidade 11
+  usa o índice; nos outros casos faz uma busca sequencial.
+- Valores de texto são escritos entre aspas na entrada, e um campo nulo é
+  informado como `NULO`.
+- As funcionalidades 10 e 11 imprimem `idPoPs nomePoPs nomePais siglaPais`,
+  sem aspas, com `NULO` nos campos nulos. As buscas (3 e 11) separam os
+  resultados de cada busca com uma linha em branco.
+- As funcionalidades que criam ou alteram arquivos terminam chamando
+  `binarioNaTela`; as funcionalidades 12, 13 e 14 o fazem para o arquivo de
+  dados e para o índice.
 
-Quando o arquivo não pode ser processado, a saída é
-`Falha no processamento do arquivo.`; quando uma busca não encontra nada,
-`Registro inexistente.`
+Mensagens de erro: `Falha no processamento do arquivo.` quando um arquivo não
+pode ser processado, e `Registro inexistente.` quando uma busca não encontra
+nada.
 
-As funcionalidades que alteram o arquivo (1, 5, 6 e 7) terminam chamando
-`BinarioNaTela`.
+## Arquivos CSV de entrada
 
-## Módulos
+- `conectaPoPs.csv`: `idPoPs, idPoPsConectado, velocidade, unidadeMedida`.
+- `PoPs.csv`: tem uma **coluna de índice no início**, que é ignorada, seguida de
+  `idPoPs, nomePoPs, nomePais, siglaPais`. Alguns nomes terminam com espaço, e
+  esse espaço faz parte do dado.
 
-| arquivo                | responsabilidade                                             |
-| ---------------------- | ------------------------------------------------------------ |
-| `main.c`               | lê a opção e chama a funcionalidade correspondente           |
-| `funcionalidades.c/.h` | as sete funcionalidades: leitura dos parâmetros e saída      |
-| `csv.c/.h`             | carga do arquivo de dados a partir do CSV                    |
-| `registro.c/.h`        | leitura e escrita campo a campo do cabeçalho e dos registros |
-| `busca.c/.h`           | leitura dos critérios, comparação e varredura do arquivo     |
-| `pilha.c/.h`           | pilha de registros removidos (empilhar e desempilhar)        |
-| `util.c/.h`            | impressão de um registro na saída padrão                     |
-| `fornecidas.c/.h`      | funções fornecidas pelo professor e seus protótipos          |
+Nos dois arquivos, a primeira linha é o cabeçalho, e um campo vazio ou formado
+só por espaços representa um valor nulo.
 
-## Observações de implementação
+## Testes
 
-- O separador do CSV é aceito tanto como vírgula quanto como ponto e vírgula, e
-  a quebra de linha pode ser LF ou CRLF.
-- A função fornecida `ScanQuoteString` é usada apenas no campo entre aspas: para
-  um valor sem aspas ela lê o primeiro caractere e chama `scanf("%s")` para o
-  resto, o que faz um valor de um único dígito ser concatenado com a palavra
-  seguinte da entrada. Os campos numéricos são lidos separadamente.
-- O `nroPares` é gravado na carga do CSV e não é alterado pelas remoções nem
-  pelas inserções.
+A pasta `testes/` contém os casos de teste abertos do Trabalho 2 (`N.in` e
+`N.out`).

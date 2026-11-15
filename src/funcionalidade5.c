@@ -7,7 +7,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "funcionalidades.h"
 #include "busca.h"
 #include "fornecidas.h"
@@ -28,9 +27,7 @@
 void Funcionalidade_5() {
     char nomeArquivo[TAM_NOME_ARQUIVO];
     int n;
-
     if (scanf("%63s %d", nomeArquivo, &n) != 2) return;
-
     /* Abre o arquivo para leitura e escrita; o status vai para '0' enquanto
        ele estiver em uso e volta para '1' no fechamento. */
     Cabecalho cab;
@@ -39,27 +36,20 @@ void Funcionalidade_5() {
         printf(MSG_FALHA);
         return;
     }
-
     for (int i = 0; i < n; i++) {
         int m;
         if (scanf("%d", &m) != 1) break;
-
         Criterio *crit = lerCriterios(m);
         if (crit == NULL) continue;
-
         Registro reg;
         int rrn;
-
         iniciarBusca(bin);
-
         while (buscarProximo(bin, crit, m, &reg, &rrn)) {
             /* Os campos de dados são sobrescritos com lixo e regravados; em
                seguida a pilha cuida dos campos de controle, colocando o
                registro no topo e atualizando o cabeçalho. */
-
             preencherComLixo(&reg);
             escreverRegistroPorRRN(bin, &reg, rrn);
-
             Empilhar(bin, &cab, rrn);
 
             /* As duas escritas acima moveram o ponteiro do arquivo, então a
@@ -68,7 +58,6 @@ void Funcionalidade_5() {
 
             fseek(bin, byteOffset(rrn + 1), SEEK_SET);
         }
-
         free(crit);
     }
 
@@ -76,6 +65,5 @@ void Funcionalidade_5() {
        e o fecha antes de imprimir o resultado. */
 
     fecharArquivoBinario(bin, &cab);
-
     BinarioNaTela(nomeArquivo);
 }

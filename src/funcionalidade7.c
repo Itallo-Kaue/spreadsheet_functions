@@ -6,7 +6,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "funcionalidades.h"
 #include "busca.h"
 #include "fornecidas.h"
@@ -25,42 +24,31 @@
 void Funcionalidade_7() {
     char nomeArquivo[TAM_NOME_ARQUIVO];
     int n;
-
     if (scanf("%63s %d", nomeArquivo, &n) != 2) return;
-
     Cabecalho cab;
     FILE *bin = abrirArquivoBinario(nomeArquivo, &cab);
     if (bin == NULL) {
         printf(MSG_FALHA);
         return;
     }
-
     for (int i = 0; i < n; i++) {
         int m;
         if (scanf("%d", &m) != 1) break;
         Criterio *busca = lerCriterios(m);
-
         int p;
         if (scanf("%d", &p) != 1) {
             free(busca);
             break;
         }
         Criterio *novos = lerCriterios(p);
-
         if (busca == NULL || novos == NULL) {
-            free(busca);
-            free(novos);
-            continue;
+            free(busca); free(novos); continue;
         }
-
         Registro reg;
         int rrn;
-
         iniciarBusca(bin);
-
         while (buscarProximo(bin, busca, m, &reg, &rrn)) {
             for (int k = 0; k < p; k++) AtualizarCampo(&reg, &novos[k]);
-
             escreverRegistroPorRRN(bin, &reg, rrn);
 
             /* A escrita acima moveu o ponteiro do arquivo, então a varredura
@@ -68,12 +56,8 @@ void Funcionalidade_7() {
 
             fseek(bin, byteOffset(rrn + 1), SEEK_SET);
         }
-
-        free(novos);
-        free(busca);
+        free(novos); free(busca);
     }
-
     fecharArquivoBinario(bin, &cab);
-
     BinarioNaTela(nomeArquivo);
 }

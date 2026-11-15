@@ -1,3 +1,4 @@
+
 /*
     fornecidas.h
     Protótipos das funções fornecidas pela professora, implementadas em
@@ -11,4 +12,6 @@
 void BinarioNaTela(char *arquivo);
 void ScanQuoteString(char *str);
 
+#define binarioNaTela BinarioNaTela
+#define scan_quote_string ScanQuoteString
 #endif

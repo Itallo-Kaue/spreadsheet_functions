@@ -5,7 +5,6 @@
 */
 
 #include <stdio.h>
-
 #include "funcionalidades.h"
 #include "registro.h"
 #include "util.h"
@@ -18,16 +17,13 @@
 void Funcionalidade_4() {
     char nomeArquivo[TAM_NOME_ARQUIVO];
     int rrn;
-
     if (scanf("%63s %d", nomeArquivo, &rrn) != 2) return;
-
     Cabecalho cab;
     FILE *bin = abrirArquivoBinarioLeitura(nomeArquivo, &cab);
     if (bin == NULL) {
         printf(MSG_FALHA);
         return;
     }
-
     Registro reg;
 
     /* O RRN precisa estar dentro da faixa já usada do arquivo. */
@@ -36,6 +32,5 @@ void Funcionalidade_4() {
     } else if (!ImprimirRegistros(&reg)) {
         printf(MSG_INEXISTENTE);
     }
-
     fclose(bin);
 }

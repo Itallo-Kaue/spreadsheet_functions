@@ -25,6 +25,15 @@ int main() {
         case 5: Funcionalidade_5(); break;
         case 6: Funcionalidade_6(); break;
         case 7: Funcionalidade_7(); break;
+        /* As funcionalidades 8 a 14 trabalham sobre o arquivo de dados dos
+           PoPs, com registros de tamanho variável e índice primário. */
+        case 8: funcionalidade8(); break;
+        case 9: funcionalidade9(); break;
+        case 10: funcionalidade10(); break;
+        case 11: funcionalidade11(); break;
+        case 12: funcionalidade12(); break;
+        case 13: funcionalidade13(); break;
+        case 14: funcionalidade14(); break;
     }
     return 0;
 }

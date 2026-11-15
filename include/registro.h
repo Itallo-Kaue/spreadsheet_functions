@@ -3,26 +3,19 @@
     Definição das estruturas do registro de cabeçalho e dos registros de dados
     do arquivo CSV, além das operações de leitura/escrita campo a campo.
 */
-
 #ifndef REGISTRO_H
 #define REGISTRO_H
-
 #include <stdio.h>
 
-
-#define TAM_CABECALHO 17 /* 1 + 4 + 4 + 4 + 4 bytes */
-#define TAM_REGISTRO  18 /* 1 + 4 + 4 + 4 + 4 + 1 bytes */
-
+#define STATUS_CONSISTENTE '1'
 #define STATUS_INCONSISTENTE '0'
-#define STATUS_CONSISTENTE   '1'
-
+#define TAM_CABECALHO 17
+#define TAM_REGISTRO 18
+#define REMOVIDO '1'
 #define NAO_REMOVIDO '0'
-#define REMOVIDO     '1'
-
-#define LIXO      '$'
-#define INT_NULO  (-1)
-
-/* Registro de cabeçalho (17 bytes, nesta ordem) */
+#define LIXO '$'
+#define INT_NULO -1
+#define TAM_VALOR 64
 typedef struct {
     char status;    /* '0' inconsistente, '1' consistente          - 1 byte  */
     int topoPilha;  /* RRN do topo da pilha de removidos, ou -1    - 4 bytes */

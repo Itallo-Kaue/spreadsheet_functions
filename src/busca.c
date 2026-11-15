@@ -29,7 +29,6 @@ void LerValorNumerico(char *destino) {
         destino[0] = '\0';
         return;
     }
-
     if (strcmp(destino, "NULO") == 0) destino[0] = '\0';
 }
 
@@ -47,10 +46,8 @@ void LerValorDoCampo(const char *nomeCampo, char *destino) {
 
 Criterio *lerCriterios(int n) {
     if (n <= 0) return NULL;
-
     Criterio *crit = (Criterio *)malloc((size_t)n * sizeof(Criterio));
     if (crit == NULL) return NULL;
-
     for (int i = 0; i < n; i++) {
         if (scanf("%31s", crit[i].nomeCampo) != 1) {
             free(crit);
@@ -58,7 +55,6 @@ Criterio *lerCriterios(int n) {
         }
         LerValorDoCampo(crit[i].nomeCampo, crit[i].valor);
     }
-
     return crit;
 }
 
@@ -73,28 +69,23 @@ Criterio *lerCriterios(int n) {
 
 static int campoCasa(Registro *reg, Criterio *c) {
     int nulo = (c->valor[0] == '\0');
-
     if (strcmp(c->nomeCampo, "idPoPs") == 0) {
         /* Campo obrigatório: nunca é nulo no arquivo. */
         if (nulo) return 0;
         return reg->idPoPs == atoi(c->valor);
     }
-
     if (strcmp(c->nomeCampo, "idPoPsConectado") == 0) {
         if (nulo) return 0;
         return reg->idPoPsConectado == atoi(c->valor);
     }
-
     if (strcmp(c->nomeCampo, "velocidade") == 0) {
         if (nulo) return reg->velocidade == INT_NULO;
         return reg->velocidade == atoi(c->valor);
     }
-
     if (strcmp(c->nomeCampo, "unidadeMedida") == 0) {
         if (nulo) return reg->unidadeMedida == LIXO;
         return reg->unidadeMedida == c->valor[0];
     }
-
     return 0;
 }
 
@@ -103,11 +94,9 @@ static int campoCasa(Registro *reg, Criterio *c) {
 
 int registroSatisfazCriterios(Registro *reg, Criterio *crit, int n) {
     if (reg->removido == REMOVIDO) return 0;
-
     for (int i = 0; i < n; i++) {
         if (!campoCasa(reg, &crit[i])) return 0;
     }
-
     return 1;
 }
 
@@ -123,27 +112,22 @@ int registroSatisfazCriterios(Registro *reg, Criterio *crit, int n) {
 
 void AtualizarCampo(Registro *reg, Criterio *c) {
     int nulo = (c->valor[0] == '\0');
-
     if (strcmp(c->nomeCampo, "idPoPs") == 0) {
         if (!nulo) reg->idPoPs = atoi(c->valor);
         return;
     }
-
     if (strcmp(c->nomeCampo, "idPoPsConectado") == 0) {
         if (!nulo) reg->idPoPsConectado = atoi(c->valor);
         return;
     }
-
     if (strcmp(c->nomeCampo, "velocidade") == 0) {
         reg->velocidade = nulo ? INT_NULO : atoi(c->valor);
         return;
     }
-
     if (strcmp(c->nomeCampo, "unidadeMedida") == 0) {
         reg->unidadeMedida = nulo ? LIXO : c->valor[0];
         return;
     }
-
 }
 
 /* ------------------------------------------------------------------
@@ -155,7 +139,6 @@ void AtualizarCampo(Registro *reg, Criterio *c) {
 
 void iniciarBusca(FILE *bin) {
     if (bin == NULL) return;
-
     fseek(bin, (long)TAM_CABECALHO, SEEK_SET);
 }
 
@@ -169,13 +152,10 @@ void iniciarBusca(FILE *bin) {
 
 int buscarProximo(FILE *bin, Criterio *crit, int n, Registro *reg, int *rrn) {
     if (bin == NULL) return 0;
-
     while (1) {
         long posicao = ftell(bin);
         int rrnAtual = (int)((posicao - TAM_CABECALHO) / TAM_REGISTRO);
-
         if (!lerRegistro(bin, reg)) return 0;
-
         if (registroSatisfazCriterios(reg, crit, n)) {
             *rrn = rrnAtual;
             return 1;

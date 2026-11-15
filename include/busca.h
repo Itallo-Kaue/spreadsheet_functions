@@ -19,9 +19,9 @@
    texto porque os campos têm tipos diferentes (inteiro ou caractere); a
    conversão é feita na hora da comparação, de acordo com o nome do campo. */
 
-   typedef struct {
-    char nomeCampo[TAM_NOME_CAMPO];
-    char valor[TAM_VALOR];
+typedef struct {
+    char nomeCampo[32];
+    char valor[100];
 } Criterio;
 
 /* Lê da entrada o valor de um campo numérico, convertendo NULO em string

@@ -11,11 +11,7 @@
 #include <stdio.h>
 #include "listaRemovidos.h"
 
-/* Insere o registro removido r, que está no byteOffset offset, na posição
-   certa da lista, percorrendo-a até achar o primeiro registro de tamanho menor
-   ou igual ao dele. O registro é regravado já apontando para o seu sucessor, o
-   antecessor (ou o topo, no cabeçalho) passa a apontar para ele e o contador
-   de removidos é atualizado. */
+/* Insere o removido na lista mantendo a ordem decrescente de tamanho. */
 
 void inserirNaLista(FILE *f, CabecalhoPoPs *c, RegistroPoPs *r, int64_t offset) {
     int64_t currOff = c->topoLista;
@@ -27,8 +23,7 @@ void inserirNaLista(FILE *f, CabecalhoPoPs *c, RegistroPoPs *r, int64_t offset) 
         prevOff = currOff;
         currOff = temp.encadeamentoLista;
     }
-    /* Neste ponto, prevOff é o registro que deve ficar antes de r (ou -1, se r
-       vira o topo) e currOff é o que deve ficar depois dele. */
+    /* O prevOff fica antes de r e currOff depois (prevOff -1 = r vira o topo). */
     r->encadeamentoLista = currOff;
     escreverRegistroPorOffset(f, r, offset);
     if(prevOff == -1) c->topoLista = offset;
@@ -40,11 +35,7 @@ void inserirNaLista(FILE *f, CabecalhoPoPs *c, RegistroPoPs *r, int64_t offset) 
     escreverCabecalhoPoPs(f, c);
 }
 
-/* Tenta retirar da lista um espaço para um registro de tamanhoNecessario
-   bytes. Como a lista está em ordem decrescente, basta olhar o topo: se ele
-   couber, sai da lista, o cabeçalho é atualizado e a função devolve o seu
-   byteOffset, com o tamanho do espaço em tamanhoRecuperado. Se nem o maior
-   removido couber, devolve -1. */
+/* Worst fit: se couber no topo, tira da lista e devolve o offset; senão -1. */
 
 int64_t retirarMaior(FILE *f, CabecalhoPoPs *c, int tamanhoNecessario, int *tamanhoRecuperado) {
     if(c->topoLista == -1) return -1;

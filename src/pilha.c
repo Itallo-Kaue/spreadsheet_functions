@@ -12,9 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* Os campos de controle ficam no início do registro, nesta ordem:
-   removido (1 byte) e encadeamentoPilha (4 bytes). O deslocamento abaixo
-   posiciona diretamente no encadeamento, sem precisar ler o registro todo. */
+/* O encadeamentoPilha fica logo depois do byte de removido. */
 
 #define DESLOC_ENCADEAMENTO ((long)sizeof(char))
 
@@ -22,8 +20,7 @@
     Inserção na pilha                                                  
    ------------------------------------------------------------------ */
 
-/* O registro removido vira o novo topo. Os dois campos de
-   controle são gravados juntos, a partir do byte offset do RRN. */
+/* O removido vira o novo topo. */
 
 void Empilhar(FILE *bin, Cabecalho *cab, int rrn) {
     if (bin == NULL || rrn < 0) return;
@@ -35,7 +32,6 @@ void Empilhar(FILE *bin, Cabecalho *cab, int rrn) {
     fwrite(&removido, sizeof(char), 1, bin);
     fwrite(&encadeamento, sizeof(int), 1, bin);
 
-    /* Atualiza o cabeçalho com o novo topo e mais um registro removido. */
     cab->topoPilha = rrn;
     cab->nroRegRem++;
 }
@@ -44,9 +40,7 @@ void Empilhar(FILE *bin, Cabecalho *cab, int rrn) {
     Remoção da pilha                                                   
    ------------------------------------------------------------------ */
 
-/* Retira o registro do topo para reaproveitar o seu espaço. Basta ler o
-   encadeamento do registro apontado por topoPilha: ele é o próximo topo.
-   Retorna o RRN retirado, ou -1 se não houver registro removido disponível. */
+/* Tira o topo da pilha e retorna o RRN, ou -1 se estiver vazia. */
 
 int Desempilhar(FILE *bin, Cabecalho *cab) {
     if (bin == NULL || cab->topoPilha == -1) return -1;
@@ -58,7 +52,6 @@ int Desempilhar(FILE *bin, Cabecalho *cab) {
     fseek(bin, byteOffset(rrn) + DESLOC_ENCADEAMENTO, SEEK_SET);
     if (fread(&proximoTopo, sizeof(int), 1, bin) != 1) return -1;
 
-    /* O encadeamento lido vira o novo topo. */
     cab->topoPilha = proximoTopo;
     cab->nroRegRem--;
 

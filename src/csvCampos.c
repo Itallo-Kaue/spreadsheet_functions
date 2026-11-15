@@ -9,8 +9,7 @@
 #include <ctype.h>
 #include <string.h>
 
-/* Remove as quebras de linha ('\n' e '\r') do fim do campo, alterando a
-   própria string, e devolve o mesmo ponteiro. */
+/* Tira \n e \r do fim. */
 
 char *removerQuebraDeLinha(char *campo) {
     size_t fim = strlen(campo);
@@ -21,10 +20,8 @@ char *removerQuebraDeLinha(char *campo) {
     return campo;
 }
 
-/* Separa a linha em até maxCampos campos, usando ',' ou ';' como delimitador.
-   A própria linha é alterada: cada delimitador vira '\0' e campos[i] aponta
-   para o início do i-ésimo campo. Os campos que faltarem ficam NULL. Retorna a
-   quantidade de campos encontrados. */
+/* Separa a linha por ',' ou ';'. Altera a própria linha (o delimitador vira '\0')
+   e os campos que faltarem ficam NULL. */
 
 int separarCampos(char *linha, char *campos[], int maxCampos) {
     int qtd = 0;
@@ -45,8 +42,7 @@ int separarCampos(char *linha, char *campos[], int maxCampos) {
     return qtd;
 }
 
-/* Retorna 1 se o campo for NULL, vazio ou formado apenas por espaços, ou seja,
-   se ele representa um valor nulo no CSV. */
+/* Campo nulo = NULL, vazio ou só espaços. */
 
 int campoNulo(const char *campo) {
     if (campo == NULL || campo[0] == '\0') return 1;

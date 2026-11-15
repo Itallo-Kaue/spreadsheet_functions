@@ -11,15 +11,7 @@
 #include "fornecidas.h"
 #include "registro.h"
 
-/* Entrada: o nome do arquivo de dados e a quantidade n de atualizações;
-   seguinte a isso, para cada atualização, duas linhas no formato "nomeCampo"
-   e "valor": a primeira com os campos de busca e a segunda com os campos a
-   serem alterados. Como os registros têm tamanho fixo, a alteração é feita no
-   próprio RRN, sem remover e reinserir.
-
-   A atualização é feita assim que a varredura encontra o registro, de modo
-   que o arquivo é percorrido uma única vez por operação e cada registro é
-   lido uma única vez. */
+/* Entrada: arquivo e n atualizações (linha de busca + linha com os novos valores). */
 
 void Funcionalidade_7() {
     char nomeArquivo[TAM_NOME_ARQUIVO];
@@ -51,8 +43,7 @@ void Funcionalidade_7() {
             for (int k = 0; k < p; k++) AtualizarCampo(&reg, &novos[k]);
             escreverRegistroPorRRN(bin, &reg, rrn);
 
-            /* A escrita acima moveu o ponteiro do arquivo, então a varredura
-               é reposicionada no registro seguinte antes de continuar. */
+            /* Volta pro próximo registro. */
 
             fseek(bin, byteOffset(rrn + 1), SEEK_SET);
         }

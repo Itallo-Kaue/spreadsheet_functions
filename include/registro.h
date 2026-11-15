@@ -19,17 +19,17 @@
 typedef struct {
     char status;    /* '0' inconsistente, '1' consistente          - 1 byte  */
     int topoPilha;  /* RRN do topo da pilha de removidos, ou -1    - 4 bytes */
-    int proxRRN;    /* próximo RRN disponível                      - 4 bytes */
-    int nroRegRem;  /* número de registros logicamente removidos   - 4 bytes */
-    int nroPares;   /* qtd de pares (idPoPs, idPoPsConectado)      - 4 bytes */
+    int proxRRN;    /* Próximo RRN disponível                      - 4 bytes. */
+    int nroRegRem;  /* Número de registros logicamente removidos   - 4 bytes. */
+    int nroPares;   /* Qtd de pares (idPoPs, idPoPsConectado)      - 4 bytes. */
 } Cabecalho;
 
 /* Registro de dados (18 bytes, nesta ordem) */
 typedef struct {
     char removido;          /* '0' ou '1'                          - 1 byte  */
     int encadeamentoPilha;  /* RRN do próximo removido, ou -1      - 4 bytes */
-    int idPoPs;             /* não pode ser nulo                   - 4 bytes */
-    int idPoPsConectado;    /* não pode ser nulo                   - 4 bytes */
+    int idPoPs;             /* Não pode ser nulo                   - 4 bytes. */
+    int idPoPsConectado;    /* Não pode ser nulo                   - 4 bytes. */
     int velocidade;         /* -1 quando nulo                      - 4 bytes */
     char unidadeMedida;     /* '$' quando nulo                     - 1 byte  */
 } Registro;
@@ -44,11 +44,7 @@ void inicializarCabecalho(Cabecalho *cab);
 
 void escreverCabecalho(FILE *bin, Cabecalho *cab);
 
-/* Lê o cabeçalho campo a campo a partir da posição 0. O status é o primeiro
-   campo e é conferido antes dos demais: se o arquivo estiver inconsistente,
-   o restante do cabeçalho não chega a ser lido.
-   Retorna 1 quando o cabeçalho foi lido por inteiro e o arquivo está
-   consistente, e 0 caso contrário. */
+/* Lê o cabeçalho. Retorna 0 se o arquivo estiver inconsistente. */
 
 int lerCabecalho(FILE *bin, Cabecalho *cab);
 
@@ -62,10 +58,8 @@ void escreverRegistro(FILE *bin, Registro *reg);
 
 void escreverRegistroPorRRN(FILE *bin, Registro *reg, int rrn);
 
-/* Lê um registro campo a campo na posição corrente do arquivo. O campo
-   removido é lido primeiro: quando o registro está logicamente removido, o
-   seu conteúdo não é lido e os bytes restantes são apenas pulados.
-   Retorna 1 em caso de sucesso e 0 quando não há mais registros. */
+/* Lê o registro da posição atual (se estiver removido, só pula).
+   Retorna 0 no fim do arquivo. */
 
 int lerRegistro(FILE *bin, Registro *reg);
 
@@ -84,9 +78,7 @@ long byteOffset(int rrn);
 
 /* --- Abertura e fechamento do arquivo de dados --- */
 
-/* Cria o arquivo de dados, grava o cabeçalho com status '0' e devolve o FILE*.
-   O arquivo é aberto apenas para escrita, pois nada é lido dele durante a
-   carga. Retorna NULL em caso de falha. */
+/* Cria o arquivo de dados com o cabeçalho inicial (status '0'). NULL se falhar. */
 
 FILE *criarArquivoBinario(const char *nomeArquivo, Cabecalho *cab);
 

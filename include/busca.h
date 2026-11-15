@@ -15,9 +15,7 @@
 #define TAM_NOME_CAMPO 32
 #define TAM_VALOR      64
 
-/* Um par (nomeCampo, valor) informado na entrada. O valor é guardado como
-   texto porque os campos têm tipos diferentes (inteiro ou caractere); a
-   conversão é feita na hora da comparação, de acordo com o nome do campo. */
+/* Par (nomeCampo, valor); o valor fica como texto e é convertido na comparação. */
 
 typedef struct {
     char nomeCampo[32];
@@ -50,21 +48,12 @@ int registroSatisfazCriterios(Registro *reg, Criterio *crit, int n);
 
 void AtualizarCampo(Registro *reg, Criterio *c);
 
-/* Posiciona o arquivo no primeiro registro, logo após o cabeçalho, para
-   iniciar uma varredura sequencial. Deve ser chamada uma vez antes da
-   primeira chamada de buscarProximo de cada busca. */
+/* Posiciona no primeiro registro, logo após o cabeçalho. */
 
 void iniciarBusca(FILE *bin);
 
-/* Avança a varredura sequencial até o próximo registro que satisfaz todos os
-   n critérios e o devolve em *reg, com o seu RRN em *rrn.
-   Retorna 1 quando encontra um registro e 0 ao chegar ao fim do arquivo.
-
-   A varredura é retomada do ponto em que parou, de modo que quem chama trata
-   cada registro assim que ele é encontrado (imprimindo, removendo ou
-   atualizando). Com isso o arquivo é percorrido uma única vez por busca e
-   cada registro é lido uma única vez, sem a necessidade de guardar os RRNs
-   encontrados para relê-los depois. */
+/* Avança até o próximo registro que satisfaz os n critérios e devolve ele em *reg,
+   com o RRN em *rrn. Retorna 0 no fim do arquivo. */
 
 int buscarProximo(FILE *bin, Criterio *crit, int n, Registro *reg, int *rrn);
 

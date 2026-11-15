@@ -14,23 +14,13 @@
 #include "indicePrimario.h"
 #include "utilPoPs.h"
 
-/* Entrada: o nome do arquivo de dados, o nome do arquivo de índice e a
-   quantidade n de buscas. Logo após pegar essas entradas, é lido, para cada
-   busca, a quantidade m de campos seguida dos m pares do "nomeCampo" e do
-   "valor". Ao final de cada busca é impressa uma linha em branco, separando as
-   respostas.
-
-   Como o idPoPs é chave primária, no máximo um registro pode satisfazer uma
-   busca que o contenha: nesse caso o byteOffset é obtido por busca binária no
-   índice e o registro é lido por acesso direto, sem varrer o arquivo. */
+/* Entrada: dados, índice e n buscas (m pares nomeCampo valor em cada). */
 
 void funcionalidade11() {
     char arqBin[TAM_NOME_ARQUIVO], arqIdx[TAM_NOME_ARQUIVO];
     int n;
     if (scanf("%63s %63s %d", arqBin, arqIdx, &n) != 3) return;
     
-    /* O índice é carregado inteiro para a memória; se ele não existir ou
-       estiver inconsistente, nada mais é feito. */
     IndiceArray *idx = carregarIndice(arqIdx);
     if (!idx) {
         printf(MSG_FALHA);
@@ -55,8 +45,7 @@ void funcionalidade11() {
         int m; if (scanf("%d", &m) != 1) break;
         CriterioPoPs *crit = lerCriteriosPoPs(m);
         if(!crit) continue;
-        /* Verifica se algum dos campos da busca é o idPoPs com valor não nulo,
-           o que permite localizar o registro pelo índice. */
+        /* Se tiver idPoPs na busca dá pra usar o índice. */
         int temIdPoPs = 0, idBuscado = -1;
         for(int j=0; j<m; j++) {
             if(strcmp(crit[j].nomeCampo, "idPoPs") == 0 && crit[j].valor[0] != '\0') {
@@ -67,14 +56,13 @@ void funcionalidade11() {
         if(temIdPoPs) {
             int64_t off;
             if(buscarNoIndice(idx, idBuscado, &off)) {
-                /* O registro achado pelo índice ainda precisa satisfazer os
-                   demais campos da busca. */
+                /* Ainda tem que conferir os outros campos. */
                 RegistroPoPs r = lerRegistroPorOffset(f, off);
                 if(registroSatisfazCriteriosPoPs(&r, crit, m)) { ImprimirRegistroPoPs(&r); encontrados++; }
                 liberarRegistroPoPs(&r);
             }
         } else {
-            /* Sem o idPoPs, a busca é sequencial por todo o arquivo de dados. */
+            /* Sem idPoPs: busca sequencial. */
             iniciarBuscaPoPs(f);
             RegistroPoPs reg; int64_t offset_atual;
             while (buscarProximoPoPs(f, crit, m, &reg, &offset_atual, cab.proxByteOffset)) {

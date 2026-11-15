@@ -11,22 +11,18 @@
 #include "registroPoPs.h"
 #include "csvCampos.h"
 
-/* Lê o arquivo CSV informado e grava cada uma de suas linhas como um registro
-   de tamanho variável no arquivo binário de saída, que é criado do zero.
-   Retorna 1 em caso de sucesso e 0 se algum dos arquivos não puder ser aberto
-   ou se o CSV estiver vazio. */
+/* Carrega o CSV dos PoPs no binário. Retorna 0 se der erro ou o CSV estiver vazio. */
 
 int criarTabelaPoPs(const char *nomeCSV, const char *nomeBin) {
     FILE *fIn = fopen(nomeCSV, "r");
     FILE *fOut = fopen(nomeBin, "wb");
     if(!fIn || !fOut) { if(fIn) fclose(fIn); if(fOut) fclose(fOut); return 0; }
     
-    /* O cabeçalho é gravado logo de início com status '0', a lista de
-       removidos vazia e o próximo byte livre logo após os seus 25 bytes. */
+    /* Cabeçalho inicial com status '0'. */
     CabecalhoPoPs c = {'0', -1, 25, 0, 0};
     escreverCabecalhoPoPs(fOut, &c);
     
-    /* A primeira linha do CSV traz os nomes das colunas e é descartada. */
+    /* Pula a linha de títulos do CSV. */
     char linha[1024];
     if (!fgets(linha, sizeof(linha), fIn)) {
         fclose(fIn);
@@ -35,21 +31,16 @@ int criarTabelaPoPs(const char *nomeCSV, const char *nomeBin) {
     }
     
     while (fgets(linha, sizeof(linha), fIn)) {
-        /* Remove a quebra de linha do fim, seja ela '\n' ou '\r\n'. */
+        /* Tira o \n ou \r\n. */
         linha[strcspn(linha, "\n")] = 0;
         if(linha[strcspn(linha, "\r")] == '\r') linha[strcspn(linha, "\r")] = 0;
         
-        /* A linha tem cinco colunas; a primeira não faz parte do registro
-           PoPs, então os campos do registro começam em campos + 1. Linhas sem
-           idPoPs são ignoradas. */
+        /* A primeira coluna não é usada, por isso campos + 1. Sem idPoPs a linha é ignorada. */
         char *campos[5];
         separarCampos(linha, campos, 5);
         char **campos_reg = campos + 1;
         if(campoNulo(campos_reg[0])) continue;
         
-        /* Cada campo do registro recebe o seu valor direto da linha do CSV. Os
-           campos opcionais ficam como NULL (strings) ou com lixo ('$', na
-           sigla) quando vêm nulos no CSV. */
         RegistroPoPs r = {0};
         r.removido = NAO_REMOVIDO;
         r.encadeamentoLista = -1;
@@ -66,8 +57,7 @@ int criarTabelaPoPs(const char *nomeCSV, const char *nomeBin) {
             r.siglaPais[1] = LIXO;
         }
         
-        /* Na carga inicial o registro ocupa exatamente o seu tamanho, sem lixo
-           no fim, e é escrito logo após o anterior, sem precisar de fseek. */
+        /* Sem lixo na carga inicial. */
         r.tamanhoRegistro = tamanhoDoRegistroPoPs(&r);
         escreverRegistroPoPs(fOut, &r);
         
@@ -76,8 +66,7 @@ int criarTabelaPoPs(const char *nomeCSV, const char *nomeBin) {
         liberarRegistroPoPs(&r);
     }
     
-    /* Regrava o cabeçalho com os contadores finais, marca o arquivo como
-       consistente ('1') e fecha os dois arquivos. */
+    /* Atualiza o cabeçalho, status '1' e fecha. */
     c.status = '1';
     escreverCabecalhoPoPs(fOut, &c);
     fclose(fIn);

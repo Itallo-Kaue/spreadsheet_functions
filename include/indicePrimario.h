@@ -11,15 +11,15 @@
 
 /* Entrada do índice (12 bytes no arquivo) */
 typedef struct {
-    int idPoPs;         /* chave de busca                          - 4 bytes */
-    int64_t byteOffset; /* posição do registro no arquivo de dados - 8 bytes */
+    int idPoPs;         /* Chave de busca                          - 4 bytes. */
+    int64_t byteOffset; /* Posição do registro no arquivo de dados - 8 bytes. */
 } IndiceEntry;
 
 /* Vetor dinâmico com as entradas do índice, ordenado pelo idPoPs. */
 typedef struct {
-    IndiceEntry *entradas;  /* vetor de entradas                 */
-    int tamanho;            /* quantidade de entradas usadas     */
-    int capacidade;         /* quantidade de entradas alocadas   */
+    IndiceEntry *entradas;  /* Vetor de entradas.                 */
+    int tamanho;            /* Quantidade de entradas usadas.     */
+    int capacidade;         /* Quantidade de entradas alocadas.   */
 } IndiceArray;
 
 /* Monta o índice a partir dos registros não removidos do arquivo de dados. */

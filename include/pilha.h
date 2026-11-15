@@ -13,17 +13,11 @@
 
 #include "registro.h"
 
-/* Empilha o registro de RRN informado, marcando o registro como removido, isto é,
-   faz seu encadeamento apontar para o antigo topo e passa a ser o novo topo.
-   Também incrementa o contador de registros removidos do cabeçalho.
-   Os campos de dados devem ter sido preenchidos com lixo antes da chamada. */
+/* Empilha o registro do RRN (os campos de dados já devem estar com lixo). */
 
 void Empilhar(FILE *bin, Cabecalho *cab, int rrn);
 
-/* Desempilha o registro do topo e devolve o seu RRN, para que o espaço seja
-   reaproveitado em uma inserção. O novo topo passa a ser o encadeamento do
-   registro retirado e o contador de removidos é decrementado.
-   Retorna -1 quando a pilha está vazia. */
+/* Desempilha e retorna o RRN do topo, ou -1 se a pilha estiver vazia. */
    
 int Desempilhar(FILE *bin, Cabecalho *cab);
 

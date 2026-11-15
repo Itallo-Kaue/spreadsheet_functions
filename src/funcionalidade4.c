@@ -9,10 +9,7 @@
 #include "registro.h"
 #include "util.h"
 
-/* Entrada: o nome do arquivo de dados e o RRN do registro desejado.
-   Sem varredura, o offset é calculado diretamente a partir do RRN,
-   devido ao registro ter tamanho fixo. Um RRN fora do arquivo
-   ou um registro logicamente removido não serão considerados. */
+/* Entrada: arquivo e RRN. */
 
 void Funcionalidade_4() {
     char nomeArquivo[TAM_NOME_ARQUIVO];

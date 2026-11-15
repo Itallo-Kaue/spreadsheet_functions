@@ -13,12 +13,7 @@
 #include "pilha.h"
 #include "registro.h"
 
-/* Entrada: o nome do arquivo de dados e a quantidade n de inserções. Logo em
-   seguida, é feito uma linha por registro com os quatro campos na seguinte
-   ordem: idPoPs, idPoPsConectado, velocidade e unidadeMedida (usando NULO para
-   os campos nulos). A inserção reaproveita o espaço dos registros removidos:
-   só quando a pilha está vazia é que o registro vai para o fim do arquivo, no
-   proxRRN. */
+/* Entrada: arquivo e n inserções (idPoPs idPoPsConectado velocidade unidadeMedida). */
 
 void Funcionalidade_6() {
     char nomeArquivo[TAM_NOME_ARQUIVO];
@@ -34,22 +29,17 @@ void Funcionalidade_6() {
         char valor[TAM_VALOR];
         Registro reg;
 
-        /* Campos de controle: o registro entra ativo e fora da pilha. */
-
         reg.removido = NAO_REMOVIDO;
         reg.encadeamentoPilha = -1;
 
-        /* Cada campo de dados recebe o valor lido da entrada. Os campos
-           opcionais recebem o valor nulo (-1 para o inteiro e '$' para a
-           unidade de medida) quando a entrada traz NULO. */
+        /* Nulo: -1 no inteiro e '$' na unidade. */
 
         LerValorNumerico(valor); reg.idPoPs = atoi(valor);
         LerValorNumerico(valor); reg.idPoPsConectado = atoi(valor);
         LerValorNumerico(valor); reg.velocidade = (valor[0] != '\0') ? atoi(valor) : INT_NULO;
         ScanQuoteString(valor);  reg.unidadeMedida = (valor[0] != '\0') ? valor[0] : LIXO;
 
-        /* Tenta reusar o topo da pilha de removidos; se não houver nenhum,
-           o registro é acrescentado no fim do arquivo. */
+        /* Reusa o topo da pilha, se tiver. */
 
         int rrn = Desempilhar(bin, &cab);
         if (rrn == -1) {

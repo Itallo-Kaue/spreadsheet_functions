@@ -7,9 +7,7 @@
 #include <stdio.h>
 #include "utilPoPs.h"
 
-/* Imprime na saída padrão os campos de dados de um registro, em uma linha.
-   Campos nulos são impressos como NULO. Retorna 1 se o registro foi impresso e
-   0 se ele estava logicamente removido, caso em que nada é escrito na saída. */
+/* Imprime o registro numa linha, NULO nos campos nulos. Retorna 0 se for removido. */
 
 int ImprimirRegistroPoPs(RegistroPoPs *r) {
     if(r->removido == REMOVIDO) return 0;

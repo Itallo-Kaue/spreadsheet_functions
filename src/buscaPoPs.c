@@ -12,10 +12,7 @@
 #include "buscaPoPs.h"
 #include "fornecidas.h"
 
-/* Lê da entrada o valor correspondente ao campo informado: os campos de texto
-   (nomePoPs, nomePais e siglaPais) vêm entre aspas e são lidos com a função
-   fornecida; o idPoPs é numérico e é lido com %s, com a palavra NULO virando
-   string vazia. */
+/* Campos de texto vêm entre aspas; idPoPs é lido com %s e NULO vira string vazia. */
 
 void LerValorDoCampoPoPs(const char *nomeCampo, char *destino) {
     if (strcmp(nomeCampo, "nomePoPs") == 0 || strcmp(nomeCampo, "nomePais") == 0 || strcmp(nomeCampo, "siglaPais") == 0) {
@@ -26,8 +23,7 @@ void LerValorDoCampoPoPs(const char *nomeCampo, char *destino) {
     }
 }
 
-/* Lê os n pares "nomeCampo valor" da entrada padrão, na ordem em que aparecem,
-   e devolve o vetor de critérios correspondente. */
+/* Lê os n pares nomeCampo valor. */
 
 CriterioPoPs *lerCriteriosPoPs(int n) {
     if (n <= 0) return NULL;
@@ -39,9 +35,7 @@ CriterioPoPs *lerCriteriosPoPs(int n) {
     return crit;
 }
 
-/* Confere se um campo do registro tem o valor pedido pelo critério. Um valor
-   vazio representa NULO: ele casa com as strings NULL e com a sigla preenchida
-   com lixo, mas nunca com o idPoPs, que não pode ser nulo. */
+/* Valor vazio = NULO (idPoPs nunca é nulo). */
 
 static int campoCasaPoPs(RegistroPoPs *reg, CriterioPoPs *c) {
     int nulo = (c->valor[0] == '\0');
@@ -64,9 +58,6 @@ static int campoCasaPoPs(RegistroPoPs *reg, CriterioPoPs *c) {
     return 0;
 }
 
-/* Retorna 1 se o registro não estiver removido e satisfizer todos os n
-   critérios, e 0 caso contrário. */
-
 int registroSatisfazCriteriosPoPs(RegistroPoPs *reg, CriterioPoPs *crit, int n) {
     if (reg->removido == REMOVIDO) return 0;
     for (int i = 0; i < n; i++) {
@@ -75,10 +66,7 @@ int registroSatisfazCriteriosPoPs(RegistroPoPs *reg, CriterioPoPs *crit, int n) 
     return 1;
 }
 
-/* Altera no registro em memória o campo indicado pelo critério. As strings
-   antigas são liberadas antes de receber o novo valor, e um valor NULO deixa a
-   string como NULL e a sigla com lixo. Como o idPoPs não pode ser nulo, um
-   NULO para ele é ignorado. */
+/* Altera o campo no registro em memória. NULO no idPoPs é ignorado. */
 
 void AtualizarCampoPoPs(RegistroPoPs *reg, CriterioPoPs *c) {
     int nulo = (c->valor[0] == '\0');
@@ -99,18 +87,14 @@ void AtualizarCampoPoPs(RegistroPoPs *reg, CriterioPoPs *c) {
     }
 }
 
-/* Posiciona o arquivo no primeiro registro de dados, logo após os 25 bytes do
-   cabeçalho. */
+/* Pula o cabeçalho (25 bytes). */
 
 void iniciarBuscaPoPs(FILE *bin) {
     if (bin) fseek(bin, 25, SEEK_SET);
 }
 
-/* Continua a varredura a partir da posição atual até encontrar o próximo
-   registro que satisfaça os critérios ou chegar ao limite (proxByteOffset).
-   Retorna 1 com o registro em reg e o seu byteOffset em offset_atual, ou 0
-   quando não há mais registros. O registro devolvido deve ser liberado por
-   quem chamou. */
+/* Próximo registro que satisfaz os critérios, até proxByteOffset.
+   O registro devolvido precisa ser liberado depois. */
 
 int buscarProximoPoPs(FILE *bin, CriterioPoPs *crit, int n, RegistroPoPs *reg, int64_t *offset_atual, int64_t limite) {
     while (ftell(bin) < limite) {

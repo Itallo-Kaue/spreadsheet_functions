@@ -9,9 +9,7 @@
 #include "csv.h"
 #include "fornecidas.h"
 
-/* Entrada: o nome do arquivo CSV de origem e o nome do arquivo binário a ser
-   criado. Todo o trabalho é feito a partir da função criarTabela, imprimindo
-   uma mensagem de erro se não for possível criar a tabela. */
+/* Entrada: csv e binário. */
 
 void Funcionalidade_1() {
     char nomeCSV[TAM_NOME_ARQUIVO];

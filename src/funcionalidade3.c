@@ -12,15 +12,7 @@
 #include "registro.h"
 #include "util.h"
 
-/* Entrada: o nome do arquivo de dados e a quantidade n de buscas. Logo após
-   pegar essas entradas, é lido, para cada busca, a quantidade m de campos
-   seguida dos m pares do "nomeCampo" e do "valor". Cada busca imprime os
-   registros que satisfazem todos os seus campos e é encerrada por uma linha
-   em branco.
-
-   Cada registro é impresso assim que a varredura o encontra, de modo que o
-   arquivo é percorrido uma única vez por busca e nenhum registro precisa ser
-   lido duas vezes. */
+/* Entrada: arquivo e n buscas (m pares nomeCampo valor em cada). */
 
 void Funcionalidade_3() {
     char nomeArquivo[TAM_NOME_ARQUIVO];

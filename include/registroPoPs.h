@@ -17,19 +17,19 @@
 /* Registro de cabeçalho (25 bytes, nesta ordem) */
 typedef struct {
     char status;            /* '0' inconsistente, '1' consistente      - 1 byte  */
-    int64_t topoLista;      /* byteOffset do 1º removido, ou -1        - 8 bytes */
-    int64_t proxByteOffset; /* próximo byte disponível no fim          - 8 bytes */
-    int nroRegRem;          /* número de registros removidos           - 4 bytes */
-    int nroPoPs;            /* número de PoPs não removidos            - 4 bytes */
+    int64_t topoLista;      /* O byteOffset do 1º removido, ou -1        - 8 bytes. */
+    int64_t proxByteOffset; /* Próximo byte disponível no fim          - 8 bytes. */
+    int nroRegRem;          /* Número de registros removidos           - 4 bytes. */
+    int nroPoPs;            /* Número de PoPs não removidos            - 4 bytes. */
 } CabecalhoPoPs;
 
 /* Registro de dados: 19 bytes de parte fixa, seguidos das duas strings, cada
    uma terminada por '|', e de lixo ('$') até completar tamanhoRegistro. */
 typedef struct {
     char removido;              /* '0' ou '1'                      - 1 byte  */
-    int tamanhoRegistro;        /* bytes ocupados pelo registro    - 4 bytes */
-    int64_t encadeamentoLista;  /* byteOffset do próximo removido  - 8 bytes */
-    int idPoPs;                 /* chave primária, não nula        - 4 bytes */
+    int tamanhoRegistro;        /* Bytes ocupados pelo registro    - 4 bytes. */
+    int64_t encadeamentoLista;  /* O byteOffset do próximo removido  - 8 bytes. */
+    int idPoPs;                 /* Chave primária, não nula        - 4 bytes. */
     char siglaPais[2];          /* '$$' quando nula                - 2 bytes */
     char *nomePoPs;             /* NULL quando nulo        - tamanho variável */
     char *nomePais;             /* NULL quando nulo        - tamanho variável */

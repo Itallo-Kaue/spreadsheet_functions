@@ -16,8 +16,7 @@
 #include "fornecidas.h"
 #include "registroPoPs.h"
 
-/* Devolve uma cópia do registro com as strings duplicadas, de modo que a cópia
-   continue válida depois que as strings do original forem liberadas. */
+/* Cópia com as strings duplicadas. */
 
 static RegistroPoPs clonarRegistroPoPs(RegistroPoPs *r) {
     RegistroPoPs copia = *r;
@@ -26,13 +25,8 @@ static RegistroPoPs clonarRegistroPoPs(RegistroPoPs *r) {
     return copia;
 }
 
-/* Aplica os p campos novos a um registro já lido, que está no byteOffset
-   offset_atual, e o regrava no arquivo, mantendo o índice coerente.
-
-   Se o novo idPoPs já pertencer a outro registro, a alteração da chave é
-   desfeita. Se o registro atualizado couber no espaço antigo, ele é regravado
-   no mesmo lugar e a sobra fica com lixo; senão, o espaço antigo vai para a
-   lista de removidos e o registro é reinserido como em uma inserção. */
+/* Aplica os campos novos e regrava. Se não couber no espaço antigo,
+   remove e insere de novo. */
 
 static void processarAtualizacaoRegistro(FILE *f, CabecalhoPoPs *cab, IndiceArray *idx, int64_t offset_atual, RegistroPoPs *reg, CriterioPoPs *novos, int p) {
     int oldId = reg->idPoPs; 
@@ -42,7 +36,7 @@ static void processarAtualizacaoRegistro(FILE *f, CabecalhoPoPs *cab, IndiceArra
         AtualizarCampoPoPs(reg, &novos[k]);
     }
     
-    /* Impede que a atualização gere um idPoPs repetido. */
+    /* Não deixa repetir idPoPs. */
     if (reg->idPoPs != oldId) {
         int64_t dummy;
         if (buscarNoIndice(idx, reg->idPoPs, &dummy)) {
@@ -52,8 +46,7 @@ static void processarAtualizacaoRegistro(FILE *f, CabecalhoPoPs *cab, IndiceArra
     
     int novoTamNecessario = tamanhoDoRegistroPoPs(reg);
     
-    /* Cabe no espaço antigo: o tamanho do registro é mantido e só a chave do
-       índice muda, caso o idPoPs tenha sido alterado. */
+    /* Cabe no mesmo lugar. */
     if(novoTamNecessario <= oldTam) {
         reg->tamanhoRegistro = oldTam;
         escreverRegistroPorOffset(f, reg, offset_atual);
@@ -62,9 +55,7 @@ static void processarAtualizacaoRegistro(FILE *f, CabecalhoPoPs *cab, IndiceArra
             inserirNoIndice(idx, reg->idPoPs, offset_atual);
         }
     } else {
-        /* Não cabe: guarda uma cópia do registro já atualizado, remove
-           logicamente o antigo (com o id original, para tirá-lo do índice) e
-           insere o espaço dele na lista de removidos. */
+        /* Não cabe: remove o antigo e insere a cópia como registro novo. */
         RegistroPoPs backup = clonarRegistroPoPs(reg);
         
         reg->idPoPs = oldId; 
@@ -75,8 +66,6 @@ static void processarAtualizacaoRegistro(FILE *f, CabecalhoPoPs *cab, IndiceArra
         
         inserirNaLista(f, cab, reg, offset_atual);
         
-        /* A cópia é reinserida como um novo registro, reaproveitando o maior
-           removido se couber ou indo para o fim do arquivo. */
         int tamRecuperado = 0;
         int64_t offsetInsercao = retirarMaior(f, cab, novoTamNecessario, &tamRecuperado);
         if(offsetInsercao != -1) { 
@@ -89,19 +78,11 @@ static void processarAtualizacaoRegistro(FILE *f, CabecalhoPoPs *cab, IndiceArra
             cab->proxByteOffset += novoTamNecessario; 
         }
         inserirNoIndice(idx, backup.idPoPs, offsetInsercao); 
-        /* nroPoPs não é incrementado, pois o registro já existia. */
         liberarRegistroPoPs(&backup);
     }
 }
 
-/* Entrada: o nome do arquivo de dados, o nome do arquivo de índice e a
-   quantidade n de atualizações; seguinte a isso, para cada atualização, a
-   quantidade m de campos de busca com seus pares "nomeCampo" e "valor" e, em
-   seguida, a quantidade p de campos a serem alterados com seus pares.
-
-   Assim como na busca, quando o idPoPs faz parte do critério o registro é
-   localizado diretamente pelo índice. Nos demais casos é feita uma varredura
-   sequencial. */
+/* Entrada: dados, índice e n atualizações (busca / campos novos). */
 
 void funcionalidade14() {
     char arqBin[TAM_NOME_ARQUIVO], arqIdx[TAM_NOME_ARQUIVO];
@@ -127,8 +108,7 @@ void funcionalidade14() {
         liberarIndice(idx);
         return; 
     }
-    /* O status vai para '0' enquanto o arquivo estiver em uso e só volta para
-       '1' depois que todas as operações terminarem. */
+    /* Status '0' enquanto o arquivo está aberto. */
     cab.status = '0'; 
     escreverCabecalhoPoPs(f, &cab);
     
@@ -139,8 +119,7 @@ void funcionalidade14() {
         CriterioPoPs *novos = lerCriteriosPoPs(p);
         if(!busca || !novos) { if(busca) free(busca); if(novos) free(novos); continue; }
         
-        /* Verifica se algum dos campos da busca é o idPoPs com valor não nulo,
-           o que permite localizar o registro pelo índice. */
+        /* Se tiver idPoPs na busca dá pra usar o índice. */
         int temIdPoPs = 0, idBuscado = -1;
         for(int j=0; j<m; j++) {
             if(strcmp(busca[j].nomeCampo, "idPoPs") == 0 && busca[j].valor[0] != '\0') {
@@ -148,11 +127,7 @@ void funcionalidade14() {
             }
         }
         
-        /* lidoDireto guarda o resultado da tentativa pelo índice: 1 quando o
-           registro foi encontrado e satisfaz a busca, -1 quando foi encontrado
-           mas não satisfaz os demais campos (e então nenhum outro pode
-           satisfazer) e 0 quando o índice não foi usado ou não contém o
-           idPoPs, caso em que a busca é sequencial. */
+        /* Valores de lidoDireto: 1 achou pelo índice, -1 achou mas não bate, 0 não usou o índice. */
         RegistroPoPs reg; int64_t offset_atual = -1; int lidoDireto = 0;
         if(temIdPoPs && buscarNoIndice(idx, idBuscado, &offset_atual)) {
             reg = lerRegistroPorOffset(f, offset_atual);
@@ -164,9 +139,8 @@ void funcionalidade14() {
             processarAtualizacaoRegistro(f, &cab, idx, offset_atual, &reg, novos, p);
             liberarRegistroPoPs(&reg);
         } else if (lidoDireto == 0) {
-            /* 
-               Justificativa da varredura dupla: um registro que cresce pode ser regravado 
-               num espaço livre mais à frente no arquivo, e uma varredura única o encontraria de novo e o atualizaria duas vezes. */
+            /* Primeiro guarda os offsets e só depois atualiza, senão um registro que
+               foi pra frente no arquivo seria atualizado de novo. */
             iniciarBuscaPoPs(f);
             int cap_offsets = 10;
             int num_offsets = 0;
@@ -184,8 +158,6 @@ void funcionalidade14() {
                 liberarRegistroPoPs(&reg);
             }
             
-            /* Segunda etapa: cada registro coletado é relido pelo seu
-               byteOffset e atualizado. */
             for(int j=0; j<num_offsets; j++) {
                 reg = lerRegistroPorOffset(f, offsets[j]);
                 processarAtualizacaoRegistro(f, &cab, idx, offsets[j], &reg, novos, p);
@@ -196,8 +168,6 @@ void funcionalidade14() {
         free(busca); 
         free(novos);
     }
-    /* Marca o arquivo de dados como consistente ('1'), regrava o índice já
-       atualizado e imprime os dois arquivos. */
     cab.status = '1'; 
     escreverCabecalhoPoPs(f, &cab);
     gravarIndice(idx, arqIdx);

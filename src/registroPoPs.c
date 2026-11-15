@@ -8,8 +8,7 @@
 #include <string.h>
 #include "registroPoPs.h"
 
-/* Devolve uma cópia alocada dinamicamente da string s, ou NULL se s for NULL.
-   Substitui a strdup, que não faz parte do padrão C99. */
+/* Substitui a strdup, que não é C99. */
 
 char *meu_strdup(const char *s) {
     if (!s) return NULL;
@@ -20,8 +19,7 @@ char *meu_strdup(const char *s) {
     return p;
 }
 
-/* Escreve o cabeçalho campo a campo na posição 0 do arquivo, totalizando 25
-   bytes. */
+/* Cabeçalho, 25 bytes. */
 
 void escreverCabecalhoPoPs(FILE *f, CabecalhoPoPs *c) {
     if (!f || !c) return;
@@ -33,9 +31,7 @@ void escreverCabecalhoPoPs(FILE *f, CabecalhoPoPs *c) {
     fwrite(&c->nroPoPs, 4, 1, f);
 }
 
-/* Lê o cabeçalho campo a campo a partir da posição 0. O status é o primeiro
-   campo e é conferido antes dos demais: se o arquivo estiver inconsistente, o
-   restante do cabeçalho não chega a ser lido e o status '0' é devolvido. */
+/* Lê o cabeçalho, para se o status for '0'. */
 
 CabecalhoPoPs lerCabecalhoPoPs(FILE *f) {
     CabecalhoPoPs c = {'0', -1, 25, 0, 0};
@@ -45,7 +41,6 @@ CabecalhoPoPs lerCabecalhoPoPs(FILE *f) {
         c.status = '0';
         return c;
     }
-    /* Retorna imediatamente se o status for '0' (inconsistente). */
     if (c.status != '1') {
         return c;
     }
@@ -56,23 +51,18 @@ CabecalhoPoPs lerCabecalhoPoPs(FILE *f) {
     return c;
 }
 
-/* Calcula quantos bytes o registro ocupa no arquivo: os 19 bytes da parte fixa
-   (removido, tamanhoRegistro, encadeamentoLista, idPoPs e siglaPais), mais o
-   tamanho das duas strings e um delimitador '|' para cada uma. */
+/* 19 bytes fixos + as strings + um '|' pra cada. */
 
 int tamanhoDoRegistroPoPs(RegistroPoPs *r) {
     int size = 19;
     if (r->nomePoPs) size += strlen(r->nomePoPs);
-    size += 1; /* delimitador '|' */
+    size += 1; /* Delimitador '|'. */
     if (r->nomePais) size += strlen(r->nomePais);
-    size += 1; /* delimitador '|' */
+    size += 1; /* Delimitador '|'. */
     return size;
 }
 
-/* Lê o registro que começa na posição atual do arquivo e deixa o ponteiro no
-   início do próximo. As strings são alocadas dinamicamente e devem ser
-   liberadas com liberarRegistroPoPs. Quando a leitura falha, o campo removido
-   volta com o valor '2', que indica o fim do arquivo. */
+/* Lê o registro da posição atual. O removido vale '2' quando a leitura falha. */
 
 RegistroPoPs lerRegistroPoPs(FILE *f) {
     RegistroPoPs r;
@@ -84,8 +74,7 @@ RegistroPoPs lerRegistroPoPs(FILE *f) {
     if (fread(&r.removido, 1, 1, f) != 1) { r.removido = '2'; return r; }
     if (fread(&r.tamanhoRegistro, 4, 1, f) != 1) { r.removido = '2'; return r; }
     
-    /* Em um registro removido só a parte fixa interessa; o restante é lixo e é
-       pulado. */
+    /* Removido: pula o resto. */
     if(r.removido == REMOVIDO) {
         fread(&r.encadeamentoLista, 8, 1, f);
         fread(&r.idPoPs, 4, 1, f);
@@ -98,10 +87,7 @@ RegistroPoPs lerRegistroPoPs(FILE *f) {
     fread(&r.idPoPs, 4, 1, f);
     fread(&r.siglaPais, 2, 1, f);
     
-    /* A parte variável é lida de uma vez para um buffer e separada pelos
-       delimitadores '|': primeiro o nomePoPs e depois o nomePais. Uma string
-       vazia entre delimitadores representa um campo nulo e fica NULL, e o que
-       vier depois do segundo '|' é lixo. */
+    /* Parte variável lida de uma vez e separada pelos '|'. String vazia = nulo. */
     int bytesRestantes = r.tamanhoRegistro - 19;
     if (bytesRestantes > 0) {
         char *buffer = malloc(bytesRestantes + 1);
@@ -138,10 +124,7 @@ RegistroPoPs lerRegistroPoPs(FILE *f) {
     return r;
 }
 
-/* Escreve o registro na posição atual do arquivo, campo a campo. Se ele
-   estiver removido, a parte variável é inteira preenchida com lixo; senão, são
-   escritas as duas strings, cada uma seguida de '|', e o espaço que sobrar até
-   tamanhoRegistro é completado com lixo ('$'). */
+/* Escreve o registro e completa com '$' até tamanhoRegistro. */
 
 void escreverRegistroPoPs(FILE *f, RegistroPoPs *r) {
     if (!f || !r) return;
@@ -164,8 +147,6 @@ void escreverRegistroPoPs(FILE *f, RegistroPoPs *r) {
         return;
     }
     
-    /* Registro válido: as strings são escritas com os seus delimitadores,
-       contando quantos bytes da parte variável foram usados. */
     int bytesVariaveis = 0;
     if (r->nomePoPs) {
         int len = strlen(r->nomePoPs);
@@ -182,8 +163,7 @@ void escreverRegistroPoPs(FILE *f, RegistroPoPs *r) {
     }
     fwrite(&sep, 1, 1, f); bytesVariaveis++;
     
-    /* Quando o registro ocupa um espaço reaproveitado maior que ele, a sobra é
-       preenchida com lixo. */
+    /* A sobra vira lixo. */
     int lixoSize = r->tamanhoRegistro - (19 + bytesVariaveis);
     if(lixoSize > 0) {
         char *lixo = malloc(lixoSize);
@@ -221,9 +201,7 @@ void liberarRegistroPoPs(RegistroPoPs *r) {
     if (r->nomePais) { free(r->nomePais); r->nomePais = NULL; }
 }
 
-/* Preenche os campos de dados do registro com lixo ('$'), como é feito na
-   remoção lógica. As strings são liberadas, então a parte variável será
-   escrita só com lixo. */
+/* Lixo nos campos de dados (remoção lógica). */
 
 void preencherComLixoRegistroPoPs(RegistroPoPs *r) {
     if (!r) return;

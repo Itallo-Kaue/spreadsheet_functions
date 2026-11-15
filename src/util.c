@@ -15,10 +15,7 @@
     Impressão de registros                                            
    ------------------------------------------------------------------ */
 
-/* Imprime os quatro campos de dados do registro separados por espaço e
-   encerrados por quebra de linha. Registros logicamente removidos são 
-   descartados aqui. idPoPs e idPoPsConectado nunca são nulos, enquanto que 
-   velocidade e unidadeMedida podem ser nulos, e nesses casos saem como NULO. */
+/* Imprime o registro numa linha, NULO nos campos nulos. Não imprime removidos. */
 
 int ImprimirRegistros(Registro *registro) {
     if (registro == NULL || registro->removido == REMOVIDO) return 0;

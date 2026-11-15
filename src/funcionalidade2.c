@@ -9,9 +9,7 @@
 #include "registro.h"
 #include "util.h"
 
-/* Entrada: o nome do arquivo de dados. Percorre o arquivo sequencialmente, do
-   primeiro registro até o fim, e imprime os que não estão removidos. O
-   arquivo é aberto apenas para leitura. */
+/* Entrada: arquivo de dados. */
 
 void Funcionalidade_2() {
     char nomeArquivo[TAM_NOME_ARQUIVO];
@@ -23,9 +21,7 @@ void Funcionalidade_2() {
         return;
     }
 
-    /* O cabeçalho acabou de ser lido por inteiro na abertura do arquivo, de
-       modo que o ponteiro já está no byte 17, início do primeiro registro:
-       não é preciso reposicioná-lo. */
+    /* O ponteiro já está no byte 17. */
 
     Registro reg;
     int impressos = 0;

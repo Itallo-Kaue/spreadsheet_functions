@@ -9,9 +9,7 @@
 #include "registroPoPs.h"
 #include "utilPoPs.h"
 
-/* Entrada: o nome do arquivo de dados. Os registros são lidos sequencialmente,
-   e os removidos são ignorados pela própria função de impressão. Se nenhum
-   registro for impresso, é exibida a mensagem de registro inexistente. */
+/* Entrada: arquivo de dados. */
 
 void funcionalidade10() {
     char arqBin[TAM_NOME_ARQUIVO];
@@ -21,9 +19,7 @@ void funcionalidade10() {
     CabecalhoPoPs c = lerCabecalhoPoPs(f);
     if(c.status == '0') { printf(MSG_FALHA); fclose(f); return; }
     
-    /* O cabeçalho ocupa os 25 primeiros bytes, então a leitura começa logo
-       depois dele e vai até proxByteOffset. Um removido igual a '2' indica que
-       a leitura do registro falhou, ou seja, que o arquivo acabou. */
+    /* Removido == '2' -> acabou o arquivo. */
     fseek(f, 25, SEEK_SET);
     int found = 0;
     while(ftell(f) < c.proxByteOffset) {

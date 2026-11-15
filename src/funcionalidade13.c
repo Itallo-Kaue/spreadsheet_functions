@@ -15,13 +15,7 @@
 #include "fornecidas.h"
 #include "registroPoPs.h"
 
-/* Entrada: o nome do arquivo de dados, o nome do arquivo de índice e a
-   quantidade n de inserções; para cada uma, os quatro campos do registro na
-   ordem idPoPs, nomePoPs, nomePais e siglaPais.
-
-   O espaço é escolhido pela estratégia worst fit: o topo da lista de removidos
-   é sempre o maior registro removido, e ele é reaproveitado se o novo registro
-   couber nele. Caso contrário, o registro é escrito no fim do arquivo. */
+/* Entrada: dados, índice e n inserções (idPoPs nomePoPs nomePais siglaPais). */
 
 void funcionalidade13() {
     char arqBin[TAM_NOME_ARQUIVO], arqIdx[TAM_NOME_ARQUIVO];
@@ -47,23 +41,17 @@ void funcionalidade13() {
         liberarIndice(idx);
         return; 
     }
-    /* O status vai para '0' enquanto o arquivo estiver em uso e só volta para
-       '1' depois que todas as operações terminarem. */
+    /* Status '0' enquanto o arquivo está aberto. */
     cab.status = '0'; 
     escreverCabecalhoPoPs(f, &cab);
     
     for (int i = 0; i < n; i++) {
-        /* Cada novo registro começa como não removido e fora da lista de
-           removidos. */
         char val[100]; RegistroPoPs reg = {0};
         reg.removido = NAO_REMOVIDO; reg.encadeamentoLista = -1;
         
         LerValorDoCampoPoPs("idPoPs", val); reg.idPoPs = atoi(val);
         
-        /* Verifica duplicidade de ID no índice primário. Se o idPoPs já
-           existir, os demais campos ainda são lidos da entrada, para não
-           desalinhar a leitura das próximas inserções, e o registro é
-           descartado. */
+        /* ID repetido: lê o resto da linha mesmo assim e descarta. */
         int64_t dummyOff;
         if (buscarNoIndice(idx, reg.idPoPs, &dummyOff)) {
             LerValorDoCampoPoPs("nomePoPs", val);
@@ -73,8 +61,6 @@ void funcionalidade13() {
             continue;
         }
         
-        /* Campos nulos ficam como NULL nas strings e com lixo ('$') na sigla
-           do país. */
         LerValorDoCampoPoPs("nomePoPs", val); reg.nomePoPs = (val[0] != '\0') ? meu_strdup(val) : NULL;
         LerValorDoCampoPoPs("nomePais", val); reg.nomePais = (val[0] != '\0') ? meu_strdup(val) : NULL;
         LerValorDoCampoPoPs("siglaPais", val); 
@@ -86,10 +72,7 @@ void funcionalidade13() {
             reg.siglaPais[1] = LIXO;
         }
         
-        /* Tenta reaproveitar o maior registro removido. Se ele for
-           reaproveitado, o novo registro herda o tamanho do espaço recuperado
-           e a sobra é preenchida com lixo; senão, ele é escrito no fim do
-           arquivo e proxByteOffset avança. */
+        /* Worst fit: tenta usar o maior removido, senão vai pro fim. */
         int tamNecessario = tamanhoDoRegistroPoPs(&reg);
         int tamRecuperado = 0;
         int64_t offsetInsercao = retirarMaior(f, &cab, tamNecessario, &tamRecuperado);
@@ -102,14 +85,10 @@ void funcionalidade13() {
             escreverRegistroPorOffset(f, &reg, offsetInsercao);
             cab.proxByteOffset += tamNecessario;
         }
-        /* Atualiza o contador de PoPs e insere o par (idPoPs, byteOffset) no
-           índice, que é mantido ordenado. */
         cab.nroPoPs++;
         inserirNoIndice(idx, reg.idPoPs, offsetInsercao);
         liberarRegistroPoPs(&reg);
     }
-    /* Marca o arquivo de dados como consistente ('1'), regrava o índice já
-       atualizado e imprime os dois arquivos. */
     cab.status = '1'; 
     escreverCabecalhoPoPs(f, &cab);
     gravarIndice(idx, arqIdx);

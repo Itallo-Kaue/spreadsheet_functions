@@ -10,8 +10,7 @@
 #include "indicePrimario.h"
 #include "registroPoPs.h"
 
-/* Função de comparação usada pelo qsort: ordena as entradas pelo idPoPs em
-   ordem crescente. */
+/* Compara por idPoPs, pro qsort. */
 
 static int compararIndice(const void *a, const void *b) {
     int idA = ((IndiceEntry*)a)->idPoPs;
@@ -21,10 +20,7 @@ static int compararIndice(const void *a, const void *b) {
     return 0;
 }
 
-/* Percorre o arquivo de dados do fim do cabeçalho até o limite
-   (proxByteOffset) e monta o vetor com um par (idPoPs, byteOffset) para cada
-   registro não removido. O vetor começa com capacidade para 1000 entradas e
-   dobra sempre que enche. Ele é devolvido ainda sem ordenação. */
+/* Monta o vetor (idPoPs, byteOffset) dos não removidos, ainda sem ordenar. */
 
 IndiceArray* criarIndiceDeDados(FILE *f, int64_t limite) {
     IndiceArray *idx = malloc(sizeof(IndiceArray));
@@ -59,9 +55,7 @@ void ordenarIndice(IndiceArray *idx) {
     qsort(idx->entradas, idx->tamanho, sizeof(IndiceEntry), compararIndice);
 }
 
-/* Grava o índice no arquivo informado, criando-o do zero: primeiro o status
-   '0', depois cada par com o idPoPs em 4 bytes e o byteOffset em 8 bytes e,
-   por fim, o status volta para '1', indicando que o arquivo está consistente. */
+/* Grava o índice: status e depois os pares (4 + 8 bytes). */
 
 void gravarIndice(IndiceArray *idx, const char *arqIdx) {
     if (!idx) return;
@@ -79,8 +73,7 @@ void gravarIndice(IndiceArray *idx, const char *arqIdx) {
     fclose(f);
 }
 
-/* Lê o arquivo de índice inteiro para a memória. Retorna NULL se o arquivo não
-   existir ou estiver inconsistente (status '0'). */
+/* Carrega o índice inteiro; NULL se não existir ou o status for '0'. */
 
 IndiceArray* carregarIndice(const char *arqIdx) {
     FILE *f = fopen(arqIdx, "rb");
@@ -121,8 +114,7 @@ void liberarIndice(IndiceArray *idx) {
     }
 }
 
-/* Busca binária pelo idPoPs no vetor ordenado. Retorna 1 e o byteOffset
-   correspondente em outOffset quando a chave é encontrada, e 0 caso contrário. */
+/* Busca binária pelo idPoPs. */
 
 int buscarNoIndice(IndiceArray *idx, int idBusca, int64_t *outOffset) {
     if (!idx) return 0;
@@ -141,8 +133,8 @@ int buscarNoIndice(IndiceArray *idx, int idBusca, int64_t *outOffset) {
     return 0;
 }
 
-/* acha a posição por busca binária, desloca as entradas seguintes 
-   uma casa para a frente e insere ali, sem reordenar nada */
+/* Acha a posição por busca binária, desloca as entradas seguintes 
+   uma casa para a frente e insere ali, sem reordenar nada. */
 
 void inserirNoIndice(IndiceArray *idx, int idPoPs, int64_t offset) {
     if(!idx) return;
@@ -174,9 +166,7 @@ void inserirNoIndice(IndiceArray *idx, int idPoPs, int64_t offset) {
     idx->tamanho++;
 }
 
-/* Remove a entrada com o idPoPs informado, deslocando as seguintes uma posição
-   para trás, o que mantém o vetor ordenado. Se a chave não existir, nada é
-   feito. */
+/* Remove a entrada e puxa as outras uma posição pra trás. */
 
 void removerDoIndice(IndiceArray *idx, int idPoPs) {
     if(!idx) return;

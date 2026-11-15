@@ -10,8 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* Quantidade de campos de uma linha do CSV: idPoPs, idPoPsConectado,
-   velocidade e unidadeMedida, nesta ordem. */
+/* Campos: idPoPs, idPoPsConectado, velocidade, unidadeMedida. */
 
 #define NUM_CAMPOS 4
 #define TAM_LINHA 1024
@@ -41,9 +40,7 @@ int criarTabela(const char *nomeCSV, const char *nomeBin) {
 
         if (campoNulo(pops) || campoNulo(cone)) continue;
 
-        /* Cada campo do registro recebe o seu valor direto da linha do CSV.
-           Os campos opcionais recebem o valor nulo (-1 para o inteiro e '$'
-           para a unidade de medida) quando vêm nulos no CSV. */
+        /* Nulo: -1 no inteiro e '$' na unidade. */
 
         Registro reg;
         reg.removido = NAO_REMOVIDO;
@@ -53,10 +50,6 @@ int criarTabela(const char *nomeCSV, const char *nomeBin) {
         reg.velocidade = campoNulo(velo) ? INT_NULO : atoi(velo);
         reg.unidadeMedida = campoNulo(unid) ? LIXO : unid[0];
 
-        /* Esta funcionalidade apenas acrescenta registros no fim do arquivo,
-           um atrás do outro. Como o fwrite já deixa o ponteiro no início do
-           próximo registro, a escrita é sequencial e não precisa de fseek. */
-
         escreverRegistro(bin, &reg);
         cab.proxRRN++;
         cab.nroPares++;
@@ -64,8 +57,7 @@ int criarTabela(const char *nomeCSV, const char *nomeBin) {
 
     fclose(csv);
 
-    /* Regrava o cabeçalho com os contadores finais, marca o arquivo como
-       consistente ('1') e o fecha. */
+    /* Atualiza o cabeçalho e fecha com status '1'. */
 
     fecharArquivoBinario(bin, &cab);
     return 1;

@@ -13,8 +13,7 @@
     Cabeçalho
    ------------------------------------------------------------------ */
 
-/* Valores iniciais de um arquivo de dados recém-criado: arquivo ainda aberto
-   para escrita (status '0'), pilha de removidos vazia e contadores zerados. */
+/* Cabeçalho inicial: status '0', pilha vazia e contadores zerados. */
 
 void inicializarCabecalho(Cabecalho *cab) {
     cab->status = STATUS_INCONSISTENTE;
@@ -24,7 +23,7 @@ void inicializarCabecalho(Cabecalho *cab) {
     cab->nroPares = 0;
 }
 
-/* Grava os 17 bytes do cabeçalho, campo a campo, sempre a partir do byte 0. */
+/* Grava o cabeçalho (17 bytes). */
 
 void escreverCabecalho(FILE *bin, Cabecalho *cab) {
     fseek(bin, 0, SEEK_SET);
@@ -36,12 +35,7 @@ void escreverCabecalho(FILE *bin, Cabecalho *cab) {
     fwrite(&cab->nroPares, sizeof(int), 1, bin);
 }
 
-/* Lê os 17 bytes do cabeçalho, campo a campo, a partir do byte 0. O status
-   ocupa o primeiro byte e indica se o arquivo está consistente; por isso ele
-   é lido e conferido antes dos demais campos, evitando ler por inteiro o
-   cabeçalho de um arquivo que não pode ser usado.
-   Retorna 1 quando o cabeçalho foi lido por completo e o arquivo está
-   consistente, e 0 caso contrário. */
+/* Lê o cabeçalho, para logo se o status for '0'. */
 
 int lerCabecalho(FILE *bin, Cabecalho *cab) {
     fseek(bin, 0, SEEK_SET);
@@ -61,16 +55,13 @@ int lerCabecalho(FILE *bin, Cabecalho *cab) {
     Registros de dados
    ------------------------------------------------------------------ */
 
-/* Byte offset do registro de RRN informado: o cabeçalho ocupa os primeiros
-   17 bytes e cada registro tem 18 bytes de tamanho fixo. */
+/* 17 do cabeçalho + 18 por registro. */
 
 long byteOffset(int rrn) {
     return (long)TAM_CABECALHO + (long)rrn * TAM_REGISTRO;
 }
 
-/* Grava os 18 bytes do registro, campo a campo, na posição corrente.
-   Os campos não são alterados aqui: quem chama decide se o
-   registro está removido e qual é o encadeamento da pilha. */
+/* Grava os 18 bytes do registro na posição atual. */
 
 void escreverRegistro(FILE *bin, Registro *reg) {
     fwrite(&reg->removido, sizeof(char), 1, bin);
@@ -88,12 +79,8 @@ void escreverRegistroPorRRN(FILE *bin, Registro *reg, int rrn) {
     escreverRegistro(bin, reg);
 }
 
-/* Lê os 18 bytes do registro, campo a campo, na posição corrente.
-   O campo removido é o primeiro do registro: quando ele indica que o registro
-   está logicamente removido, o conteúdo dos campos seguintes é lixo e não
-   precisa ser lido, então os bytes restantes são apenas pulados com fseek e o
-   ponteiro já fica no início do próximo registro.
-   Retorna 0 quando o arquivo acabou. */
+/* Lê o registro na posição atual. Se for removido só pula o resto.
+   Retorna 0 no fim do arquivo. */
 
 int lerRegistro(FILE *bin, Registro *reg) {
     if (fread(&reg->removido, sizeof(char), 1, bin) != 1) return 0;
@@ -112,8 +99,7 @@ int lerRegistro(FILE *bin, Registro *reg) {
     return 1;
 }
 
-/* Ele posiciona no byte offset do RRN e lê.
-   Retorna 0 se o RRN for inválido ou estiver além do fim do arquivo. */
+/* Lê pelo RRN. Retorna 0 se o RRN for inválido. */
 
 int lerRegistroPorRRN(FILE *bin, Registro *reg, int rrn) {
     if (rrn < 0) return 0;
@@ -122,9 +108,7 @@ int lerRegistroPorRRN(FILE *bin, Registro *reg, int rrn) {
     return lerRegistro(bin, reg);
 }
 
-/* Preenche com lixo '$' todos os bytes dos campos de dados, preservando os
-   campos de controle (removido e encadeamentoPilha). Como os inteiros são
-   de 4 bytes, o preenchimento é feito byte a byte sobre a representação do inteiro. */
+/* Enche os campos de dados com '$' (os inteiros byte a byte). */
 
 void preencherComLixo(Registro *reg) {
     unsigned char *p;
@@ -146,9 +130,7 @@ void preencherComLixo(Registro *reg) {
     Abertura e fechamento do arquivo de dados
    ------------------------------------------------------------------ */
 
-/* Cria o arquivo de dados e já grava o cabeçalho inicial com status '0',
-   indicando que o arquivo está aberto. O modo "wb" basta: na criação da
-   tabela o arquivo é apenas escrito, nada é lido de volta. */
+/* Cria o arquivo e já grava o cabeçalho com status '0'. */
 
 FILE *criarArquivoBinario(const char *nomeArquivo, Cabecalho *cab) {
     FILE *bin = fopen(nomeArquivo, "wb");
@@ -160,11 +142,7 @@ FILE *criarArquivoBinario(const char *nomeArquivo, Cabecalho *cab) {
     return bin;
 }
 
-/* Abre um arquivo já existente para leitura e escrita, com o modo "rb+", pois
-   as funcionalidades de remoção, inserção e atualização precisam ler o
-   registro e regravá-lo no mesmo lugar. O cabeçalho é lido e, em seguida, o
-   status é regravado como '0' enquanto o arquivo estiver em uso.
-   Retorna NULL se o arquivo não existir ou estiver inconsistente. */
+/* Abre com rb+ e marca o status como '0'. NULL se não existir ou estiver inconsistente. */
 
 FILE *abrirArquivoBinario(const char *nomeArquivo, Cabecalho *cab) {
     FILE *bin = fopen(nomeArquivo, "rb+");
@@ -181,9 +159,7 @@ FILE *abrirArquivoBinario(const char *nomeArquivo, Cabecalho *cab) {
     return bin;
 }
 
-/* Abre um arquivo já existente apenas para leitura, com o modo "rb". As
-   funcionalidades de consulta não alteram o arquivo e, portanto, não mexem no
-   status nem precisam de permissão de escrita. */
+/* Abre só pra leitura. */
 
 FILE *abrirArquivoBinarioLeitura(const char *nomeArquivo, Cabecalho *cab) {
     FILE *bin = fopen(nomeArquivo, "rb");
@@ -197,8 +173,7 @@ FILE *abrirArquivoBinarioLeitura(const char *nomeArquivo, Cabecalho *cab) {
     return bin;
 }
 
-/* Regrava o cabeçalho com os contadores atualizados, marca o arquivo como
-   consistente '1' e o fecha. */
+/* Regrava o cabeçalho com status '1' e fecha. */
 
 void fecharArquivoBinario(FILE *bin, Cabecalho *cab) {
     if (bin == NULL) return;
